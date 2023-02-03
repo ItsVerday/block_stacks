@@ -1,10 +1,11 @@
 use std::collections::HashMap;
+use rand::rngs::ThreadRng;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
 pub type Color = [u8; 4];
 
-pub struct PlatformInterface {
+pub struct PlatformInterface<'a> {
 	pub width: usize,
 	pub height: usize,
 
@@ -12,11 +13,13 @@ pub struct PlatformInterface {
 	pub palette: [Color; 256],
 
 	pub mouse_pos: Option<(f64, f64)>,
-	pub inputs: HashMap<Button, InputState>
+	pub inputs: HashMap<Button, InputState>,
+
+	pub rng: &'a mut ThreadRng
 }
 
-impl PlatformInterface {
-	pub fn new(width: usize, height: usize) -> PlatformInterface {
+impl<'a> PlatformInterface<'a> {
+	pub fn new(width: usize, height: usize, rng: &'a mut ThreadRng) -> PlatformInterface<'a> {
 		let mut pixel_buffer = vec![];
 		pixel_buffer.resize(width * height, 0);
 
@@ -31,7 +34,8 @@ impl PlatformInterface {
 			pixel_buffer,
 			palette: [[0; 4]; 256],
 			mouse_pos: None,
-			inputs
+			inputs,
+			rng
 		}
 	}
 	

@@ -9,9 +9,11 @@ use common::{PlatformInterface, InputState};
 use game::*;
 use image::{ImageBuffer, Rgba};
 use piston_window::*;
+use rand::rngs::ThreadRng;
 
 fn main() {
-	let mut state = create_state();
+	let mut rng = rand::thread_rng();
+	let mut state = create_state(&mut rng);
 	let mut game_state = init(&mut state.interface);
 
     let mut window: PistonWindow =
@@ -72,8 +74,8 @@ fn handle_mouse_move(args: Option<[f64; 2]>, size: Size, state: &mut State) {
 
 fn do_loop(event: &Event, state: &mut State, game_state: &mut GameState, texture_info: &mut TextureInfo, window: &mut PistonWindow) {
 	do_ticks(state, game_state);
-	draw(game_state, &mut state.interface, state.accum_time / state.tickrate as f64);
-	do_draw(event, state, game_state, texture_info, window);
+	game::draw(game_state, &mut state.interface, state.accum_time / state.tickrate as f64);
+	do_draw(event, state, texture_info, window);
 }
 
 fn do_ticks(state: &mut State, game_state: &mut GameState) {
@@ -97,7 +99,7 @@ fn do_ticks(state: &mut State, game_state: &mut GameState) {
 	}
 }
 
-fn do_draw(event: &Event, state: &mut State, game_state: &mut GameState, texture_info: &mut TextureInfo, window: &mut PistonWindow) {
+fn do_draw(event: &Event, state: &mut State, texture_info: &mut TextureInfo, window: &mut PistonWindow) {
 	for x in 0..state.interface.width {
 		for y in 0..state.interface.height {
 			let palette_index = state.interface.pixel_buffer[x + y * state.interface.width] as usize;
@@ -125,23 +127,23 @@ fn do_draw(event: &Event, state: &mut State, game_state: &mut GameState, texture
 	});
 }
 
-struct State {
+struct State<'a> {
 	size: (u32, u32),
 	tickrate: u32,
-	interface: PlatformInterface,
+	interface: PlatformInterface<'a>,
 	time: Instant,
 	ticks_executed: f64,
 	accum_time: f64
 }
 
-fn create_state() -> State {
+fn create_state<'a>(rng: &'a mut ThreadRng) -> State<'a> {
 	let interface_size = requested_size();
 	let interface_tickrate = requested_tickrate();
 
 	State {
 		size: interface_size,
 		tickrate: interface_tickrate,
-		interface: PlatformInterface::new(interface_size.0 as usize, interface_size.1 as usize),
+		interface: PlatformInterface::<'a>::new(interface_size.0 as usize, interface_size.1 as usize, rng),
 		time: Instant::now(),
 		ticks_executed: 0.0,
 		accum_time: 0.0
