@@ -1,0 +1,14 @@
+[package]
+name = "piston"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+piston_window = "0.127.0"
+image = "0.24.1"
+strum = "0.24.1"
+strum_macros = "0.24.1"
+common = { path = "../common" }
+game = { path = "../game" }
