@@ -12,7 +12,7 @@ pub struct PlatformInterface {
 	pub palette: [Color; 256],
 
 	pub mouse_pos: Option<(f64, f64)>,
-	pub inputs: HashMap<Button, ButtonState>
+	pub inputs: HashMap<Button, InputState>
 }
 
 impl PlatformInterface {
@@ -22,7 +22,7 @@ impl PlatformInterface {
 
 		let mut inputs = HashMap::new();
 		for button in Button::iter() {
-			inputs.insert(button, ButtonState::Up);
+			inputs.insert(button, InputState::Up);
 		}
 
 		PlatformInterface {
@@ -35,7 +35,7 @@ impl PlatformInterface {
 		}
 	}
 	
-	pub fn input(&self, button: Button) -> ButtonState {
+	pub fn input(&self, button: Button) -> InputState {
 		*self.inputs.get(&button).unwrap()
 	}
 
@@ -63,14 +63,14 @@ impl PlatformInterface {
 }
 
 #[derive(Copy, Clone, PartialEq, PartialOrd, Ord, Eq, Hash, Debug, EnumIter)]
-pub enum ButtonState {
+pub enum InputState {
 	Pressed,
 	Down,
 	Released,
 	Up
 }
 
-impl ButtonState {
+impl InputState {
 	pub fn is_down(&self) -> bool {
 		match self {
 			Self::Pressed | Self::Down => true,
