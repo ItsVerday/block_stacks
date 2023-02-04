@@ -74,6 +74,10 @@ pub fn button_piston_to_common(button: Button) -> Option<common::Button> {
             Key::Y => Some(B::KeyY),
             Key::Z => Some(B::KeyZ),
             Key::Delete => Some(B::KeyDelete),
+			Key::Up => Some(B::KeyUp),
+			Key::Left => Some(B::KeyLeft),
+			Key::Down => Some(B::KeyDown),
+			Key::Right => Some(B::KeyRight),
             _ => None,
         },
         Button::Mouse(mouse_buton) => match mouse_buton {

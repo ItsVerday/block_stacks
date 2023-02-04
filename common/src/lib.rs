@@ -172,4 +172,8 @@ pub enum Button {
     KeyY,
     KeyZ,
     KeyDelete,
+	KeyUp,
+	KeyLeft,
+	KeyDown,
+	KeyRight
 }

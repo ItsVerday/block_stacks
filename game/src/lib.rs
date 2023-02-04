@@ -15,15 +15,15 @@ pub struct GameState {
 }
 
 pub fn requested_size() -> (u32, u32) {
-    (320, 240)
+    (360, 240)
 }
 
 pub fn requested_tickrate() -> u32 {
-    120
+    60
 }
 
 pub fn init(interface: &mut PlatformInterface) -> GameState {
-    interface.set_palette_color(0, [0, 0, 0, 255]);
+    interface.set_palette_color(0, [64, 64, 64, 255]);
     interface.set_palette_color(1, [255, 0, 0, 255]);
     interface.set_palette_color(2, [255, 255, 0, 255]);
     interface.set_palette_color(3, [0, 255, 0, 255]);
@@ -37,10 +37,11 @@ pub fn init(interface: &mut PlatformInterface) -> GameState {
 	for _ in 0..100 {
 		let radius = interface.rng.gen_range(3.0..10.0);
 		let direction = interface.rng.gen_range(0.0..PI * 2.0);
+		let speed = interface.rng.gen_range(10.0..100.0);
 
 		balls.push(Ball {
 			pos: (interface.rng.gen_range(radius..interface.width as f64 - radius), interface.rng.gen_range(radius..interface.height as f64 - radius)),
-			vel: (direction.sin() * 50.0, direction.cos() * 50.0),
+			vel: (direction.sin() * speed, direction.cos() * speed),
 			radius,
 			color: interface.rng.gen_range(1..8)
 		});

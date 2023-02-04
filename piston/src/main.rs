@@ -14,9 +14,9 @@ use rand::rngs::ThreadRng;
 fn main() {
     let rng = rand::thread_rng();
     let mut state = create_state(rng);
-    let mut game_state = init(&mut state.interface);
+    let mut game_state = game::init(&mut state.interface);
 
-    let mut window: PistonWindow = WindowSettings::new("Block Stacks", [1280, 960])
+    let mut window: PistonWindow = WindowSettings::new("Block Stacks", [1440, 960])
         .resizable(true)
         .graphics_api(OpenGL::V3_3)
         .build()
@@ -103,7 +103,7 @@ fn do_ticks(state: &mut State, game_state: &mut GameState) {
     while state.accum_time >= state.ticks_executed {
         state.ticks_executed += 1.0;
 
-        tick(
+        game::tick(
             game_state,
             &mut state.interface,
             1.0 / state.tickrate as f64,
