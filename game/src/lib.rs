@@ -1,9 +1,17 @@
-use common::*;
+use std::f64::consts::PI;
 
-pub struct GameState {
+use common::*;
+use rand::Rng;
+
+pub struct Ball {
 	pub pos: (f64, f64),
 	pub vel: (f64, f64),
-	pub radius: f64
+	pub radius: f64,
+	pub color: u8
+}
+
+pub struct GameState {
+	pub balls: Vec<Ball>
 }
 
 pub fn requested_size() -> (u32, u32) {
@@ -17,66 +25,71 @@ pub fn requested_tickrate() -> u32 {
 pub fn init(interface: &mut PlatformInterface) -> GameState {
     interface.set_palette_color(0, [0, 0, 0, 255]);
     interface.set_palette_color(1, [255, 0, 0, 255]);
+    interface.set_palette_color(2, [255, 255, 0, 255]);
+    interface.set_palette_color(3, [0, 255, 0, 255]);
+    interface.set_palette_color(4, [0, 255, 255, 255]);
+    interface.set_palette_color(5, [0, 0, 255, 255]);
+    interface.set_palette_color(6, [255, 0, 255, 255]);
+    interface.set_palette_color(7, [255, 255, 255, 255]);
+
+	let mut balls = vec![];
+
+	for _ in 0..100 {
+		let radius = interface.rng.gen_range(3.0..10.0);
+		let direction = interface.rng.gen_range(0.0..PI * 2.0);
+
+		balls.push(Ball {
+			pos: (interface.rng.gen_range(radius..interface.width as f64 - radius), interface.rng.gen_range(radius..interface.height as f64 - radius)),
+			vel: (direction.sin() * 50.0, direction.cos() * 50.0),
+			radius,
+			color: interface.rng.gen_range(1..8)
+		});
+	}
 
     GameState {
-		pos: (interface.width as f64 / 2.0, interface.height as f64 / 2.0),
-		vel: (45.0, 32.0),
-		radius: 5.0
+		balls
 	}
 }
 
 pub fn tick(state: &mut GameState, interface: &mut PlatformInterface, delta: f64) {
-	state.pos.0 += state.vel.0 * delta;
-	state.pos.1 += state.vel.1 * delta;
+	for ball in state.balls.iter_mut() {
+		ball.pos.0 += ball.vel.0 * delta;
+		ball.pos.1 += ball.vel.1 * delta;
 
-	if state.pos.0 < state.radius {
-		state.vel.0 = state.vel.0.abs();
-	}
-
-	if state.pos.0 > interface.width as f64 - state.radius {
-		state.vel.0 = -state.vel.0.abs();
-	}
-
-	if state.pos.1 < state.radius {
-		state.vel.1 = state.vel.1.abs();
-	}
-
-	if state.pos.1 > interface.height as f64 - state.radius {
-		state.vel.1 = -state.vel.1.abs();
-	}
-
-	if let Some(mouse_pos) = interface.mouse_pos {
-		if interface.input(Button::MouseLeft) == InputState::Pressed {
-			state.pos = mouse_pos;
+		if ball.pos.0 < ball.radius {
+			ball.vel.0 = ball.vel.0.abs();
 		}
-	}
 
-	if interface.input(Button::KeyW).is_down() {
-		state.pos.1 -= 20.0 * delta;
-	}
+		if ball.pos.0 > interface.width as f64 - ball.radius {
+			ball.vel.0 = -ball.vel.0.abs();
+		}
 
-	if interface.input(Button::KeyA).is_down() {
-		state.pos.0 -= 20.0 * delta;
-	}
+		if ball.pos.1 < ball.radius {
+			ball.vel.1 = ball.vel.1.abs();
+		}
 
-	if interface.input(Button::KeyS).is_down() {
-		state.pos.1 += 20.0 * delta;
-	}
+		if ball.pos.1 > interface.height as f64 - ball.radius {
+			ball.vel.1 = -ball.vel.1.abs();
+		}
 
-	if interface.input(Button::KeyD).is_down() {
-		state.pos.0 += 20.0 * delta;
+		if let Some(mouse_pos) = interface.mouse_pos {
+			if interface.input(Button::MouseLeft) == InputState::Pressed {
+				ball.pos = mouse_pos;
+			}
+		}
 	}
 }
 
 pub fn draw(state: &mut GameState, interface: &mut PlatformInterface, time: f64) {
     interface.set_background(0);
-
-	for x in (state.pos.0 - state.radius).floor() as i32..(state.pos.0 + state.radius).ceil() as i32 {
-		for y in (state.pos.1 - state.radius).floor() as i32..(state.pos.1 + state.radius).ceil() as i32 {
-			let dx = x as f64 - state.pos.0;
-			let dy = y as f64 - state.pos.1;
-			if dx * dx + dy * dy < state.radius * state.radius {
-				interface.set_pixel(x as f64, y as f64, 1);
+	for ball in state.balls.iter() {
+		for x in (ball.pos.0 - ball.radius).floor() as i32..(ball.pos.0 + ball.radius).ceil() as i32 {
+			for y in (ball.pos.1 - ball.radius).floor() as i32..(ball.pos.1 + ball.radius).ceil() as i32 {
+				let dx = x as f64 - ball.pos.0;
+				let dy = y as f64 - ball.pos.1;
+				if dx * dx + dy * dy < ball.radius * ball.radius {
+					interface.set_pixel(x as f64, y as f64, ball.color);
+				}
 			}
 		}
 	}
