@@ -1,0 +1,15 @@
+{
+  "name": "block-stacks",
+  "version": "0.1.0",
+  "files": [
+    "block_stacks_bg.wasm",
+    "block_stacks.js",
+    "block_stacks.d.ts"
+  ],
+  "targets": {
+    "browser": {
+      "context": "browser",
+	  "outputFormat": "esmodule"
+    }
+  }
+}

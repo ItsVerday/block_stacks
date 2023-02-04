@@ -1,0 +1,29 @@
+[config]
+default_to_workspace = false
+
+[tasks.build]
+dependencies = ["build_web", "build_native"]
+
+[tasks.build_native]
+script='''
+cargo build --release
+'''
+
+[tasks.run_wasm_pack]
+script='''
+wasm-pack build web --out-dir ../target/makefile/wasm_pack --out-name block_stacks --target web
+'''
+
+[tasks.run_parcel]
+dependencies = ["run_wasm_pack"]
+script='''
+cd target/makefile/wasm_pack
+copy "../../../web/build/" .
+npx --yes parcel build --dist-dir "../../../dist/web" --no-source-maps --no-content-hash block_stacks.js
+'''
+
+[tasks.build_web]
+dependencies = ["run_parcel"]
+script='''
+copy "web/dist/" "dist/web/"
+'''
