@@ -1,3 +1,5 @@
+mod palette;
+
 use std::f64::consts::PI;
 
 use common::*;
@@ -23,14 +25,7 @@ pub fn requested_tickrate() -> u32 {
 }
 
 pub fn init(interface: &mut PlatformInterface) -> GameState {
-    interface.set_palette_color(0, [64, 64, 64, 255]);
-    interface.set_palette_color(1, [255, 0, 0, 255]);
-    interface.set_palette_color(2, [255, 255, 0, 255]);
-    interface.set_palette_color(3, [0, 255, 0, 255]);
-    interface.set_palette_color(4, [0, 255, 255, 255]);
-    interface.set_palette_color(5, [0, 0, 255, 255]);
-    interface.set_palette_color(6, [255, 0, 255, 255]);
-    interface.set_palette_color(7, [255, 255, 255, 255]);
+	palette::load_palette(interface);
 
 	let mut balls = vec![];
 
@@ -39,11 +34,16 @@ pub fn init(interface: &mut PlatformInterface) -> GameState {
 		let direction = interface.rng.gen_range(0.0..PI * 2.0);
 		let speed = interface.rng.gen_range(10.0..100.0);
 
+		let mut color = interface.rng.gen_range(0..36);
+		while color == 20 {
+			color = interface.rng.gen_range(0..36);
+		}
+
 		balls.push(Ball {
 			pos: (interface.rng.gen_range(radius..interface.width as f64 - radius), interface.rng.gen_range(radius..interface.height as f64 - radius)),
 			vel: (direction.sin() * speed, direction.cos() * speed),
 			radius,
-			color: interface.rng.gen_range(1..8)
+			color
 		});
 	}
 
@@ -82,7 +82,7 @@ pub fn tick(state: &mut GameState, interface: &mut PlatformInterface, delta: f64
 }
 
 pub fn draw(state: &mut GameState, interface: &mut PlatformInterface, time: f64) {
-    interface.set_background(0);
+    interface.set_background(20);
 	for ball in state.balls.iter() {
 		for x in (ball.pos.0 - ball.radius).floor() as i32..(ball.pos.0 + ball.radius).ceil() as i32 {
 			for y in (ball.pos.1 - ball.radius).floor() as i32..(ball.pos.1 + ball.radius).ceil() as i32 {
