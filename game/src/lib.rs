@@ -74,7 +74,7 @@ pub fn tick(state: &mut GameState, interface: &mut PlatformInterface, delta: f64
 		}
 
 		if let Some(mouse_pos) = interface.mouse_pos {
-			if interface.input(Button::MouseLeft) == InputState::Pressed {
+			if interface.input_pressed(Button::MouseLeft) {
 				ball.pos = mouse_pos;
 			}
 		}

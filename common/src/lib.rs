@@ -43,6 +43,18 @@ impl PlatformInterface {
         *self.inputs.get(&button).unwrap()
     }
 
+	pub fn input_down(&self, button: Button) -> bool {
+		self.input(button).is_down()
+	}
+
+	pub fn input_first(&self, button: Button) -> bool {
+		self.input(button).is_first()
+	}
+
+	pub fn input_pressed(&self, button: Button) -> bool {
+		self.input(button) == InputState::Pressed
+	}
+
     pub fn set_palette_color(&mut self, index: u8, color: Color) {
         self.palette[index as usize] = color;
     }
