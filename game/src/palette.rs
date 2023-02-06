@@ -1,7 +1,5 @@
 use common::PlatformInterface;
 
-
-
 // https://lospec.com/palette-list/pear36
 pub fn load_palette(interface: &mut PlatformInterface) {
     interface.set_palette_color(0, [94, 49, 91, 255]);
