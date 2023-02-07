@@ -1,7 +1,7 @@
 use common::PlatformInterface;
 use rand::Rng;
 
-use crate::BLOCK_SCALE;
+use crate::{BLOCK_SCALE, PADDING};
 
 pub enum BlockType {
     Fire,
@@ -29,12 +29,12 @@ impl BlockType {
         for x_offset in 0..BLOCK_SCALE as u32 {
             for y_offset in 0..BLOCK_SCALE as u32 {
                 let color = if x_offset == 0 || y_offset == 0 {color2} else {color1};
-                interface.set_pixel(x + x_offset as f64, y + y_offset as f64, color);
+                interface.set_pixel(x + x_offset as f64 + PADDING, y + y_offset as f64 - PADDING, color);
             }
         }
     }
 
-    pub fn draw_instance(&self, interface: &mut PlatformInterface, x: f64, y: f64) {
+    pub fn draw_instance(&self, interface: &mut PlatformInterface, time: f64, x: f64, y: f64) {
         match self {
             Self::Fire => BlockType::draw_bordered_rectangle(interface, x, y, 27, 28),
             Self::Ice => BlockType::draw_bordered_rectangle(interface, x, y, 14, 13),
