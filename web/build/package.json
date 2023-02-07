@@ -9,7 +9,9 @@
   "targets": {
     "browser": {
       "context": "browser",
-	  "outputFormat": "esmodule"
+	  "outputFormat": "esmodule",
+	  "isLibrary": false,
+	  "optimize": true
     }
   }
 }
