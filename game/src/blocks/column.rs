@@ -2,8 +2,6 @@ use std::vec;
 
 use common::PlatformInterface;
 
-use crate::FIELD_HEIGHT;
-
 use super::{block::Block, block_type::BlockType};
 
 pub struct Column {

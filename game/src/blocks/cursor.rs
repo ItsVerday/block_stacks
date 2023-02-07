@@ -8,7 +8,10 @@ pub struct Cursor {
 
 	pub x_offset: f64,
 	pub y_offset: f64,
-	pub rotate_offset: f64
+	pub rotate_offset: f64,
+
+	pub x_cooldown: f64,
+	pub y_cooldown: f64
 }
 
 impl Cursor {
@@ -18,34 +21,51 @@ impl Cursor {
 			y,
 			x_offset: 0.0,
 			y_offset: 0.0,
-			rotate_offset: 0.0
+			rotate_offset: 0.0,
+
+			x_cooldown: 0.0,
+			y_cooldown: 0.0
 		}
 	}
 
 	pub fn tick(&mut self, interface: &mut PlatformInterface, delta: f64) {
-		if interface.input_pressed(common::Button::KeyUp) {
+		const UP_BUTTON: common::Button = common::Button::KeyUp;
+		const DOWN_BUTTON: common::Button = common::Button::KeyDown;
+		const LEFT_BUTTON: common::Button = common::Button::KeyLeft;
+		const RIGHT_BUTTON: common::Button = common::Button::KeyRight;
+
+		let up = interface.input_down(UP_BUTTON) && self.y_cooldown <= 0.0 || interface.input_pressed(UP_BUTTON);
+		let down = interface.input_down(DOWN_BUTTON) && self.y_cooldown <= 0.0 || interface.input_pressed(DOWN_BUTTON);
+		let left = interface.input_down(LEFT_BUTTON) && self.x_cooldown <= 0.0 || interface.input_pressed(LEFT_BUTTON);
+		let right = interface.input_down(RIGHT_BUTTON) && self.x_cooldown <= 0.0 || interface.input_pressed(RIGHT_BUTTON);
+
+		if up && !down {
 			self.y_offset = -1.0;
+			self.y_cooldown = if interface.input_pressed(UP_BUTTON) {0.15} else {0.05};
 			if self.y < FIELD_HEIGHT - 2 {
 				self.y += 1;
 			}
 		}
 
-		if interface.input_pressed(common::Button::KeyLeft) {
+		if left && !right {
 			self.x_offset = -1.0;
+			self.x_cooldown = if interface.input_pressed(LEFT_BUTTON) {0.15} else {0.05};
 			if self.x > 0 {
 				self.x -= 1;
 			}
 		}
 		
-		if interface.input_pressed(common::Button::KeyDown) {
+		if down && !up {
 			self.y_offset = 1.0;
+			self.y_cooldown = if interface.input_pressed(DOWN_BUTTON) {0.15} else {0.05};
 			if self.y > 0 {
 				self.y -= 1;
 			}
 		}
 
-		if interface.input_pressed(common::Button::KeyRight) {
+		if right && !left {
 			self.x_offset = 1.0;
+			self.x_cooldown = if interface.input_pressed(RIGHT_BUTTON) {0.15} else {0.05};
 			if self.x < FIELD_WIDTH - 2 {
 				self.x += 1;
 			}
@@ -53,6 +73,8 @@ impl Cursor {
 
 		self.x_offset *= 0.1_f64.powf(delta * 3.0);
 		self.y_offset *= 0.1_f64.powf(delta * 3.0);
+		self.x_cooldown -= delta;
+		self.y_cooldown -= delta;
 	}
 
 	pub fn draw_corner(&mut self, interface: &mut PlatformInterface, x: f64, y: f64, x_pos: bool, y_pos: bool) {
