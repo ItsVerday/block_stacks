@@ -1,6 +1,6 @@
-use std::vec;
+use std::{vec, collections::HashMap};
 
-use crate::{FIELD_HEIGHT, SPAWN_TIMER, FIELD_WIDTH};
+use crate::SPAWN_TIMER;
 
 use super::{column::Column, block_kind::BlockKind};
 use common::PlatformInterface;
@@ -57,6 +57,10 @@ impl Field {
 				check_blocks.push((column.x, height));
 			}
         }
+
+		for (x, y) in check_blocks.iter() {
+			self.check_match(*x as i32, *y as i32);
+		}
 	}
 
     pub fn draw(&mut self, interface: &mut PlatformInterface, time: f64, scale: f64) {
@@ -64,6 +68,89 @@ impl Field {
             column.draw(interface, time, scale);
         }
     }
+
+	pub fn check_match(&mut self, x: i32, y: i32) {
+		let kind = self.get_kind_at(x, y);
+		let kind = match kind {
+			Some(kind) => kind,
+			None => return
+		};
+
+		let mut match_map = HashMap::new();
+		let mut check_blocks = vec![];
+		let mut matched_count = 0;
+
+		let pos = (x, y);
+		check_blocks.push(pos);
+		while check_blocks.len() > 0 {
+			let (check_x, check_y) = check_blocks.pop().unwrap();
+			if match_map.contains_key(&(check_x, check_y)) {
+				continue;
+			}
+
+			let kind_to_match = self.get_kind_at(check_x, check_y);
+			let matches = match kind_to_match {
+				Some(kind_to_match) => kind.matches(kind_to_match),
+				None => false
+			};
+
+			match_map.insert((check_x, check_y), matches);
+			if matches {
+				matched_count += 1;
+				if check_x > 0 {
+					let pos = (check_x - 1, check_y);
+					check_blocks.push(pos);
+				}
+
+				if check_x < self.width as i32 - 1 {
+					let pos = (check_x + 1, check_y);
+					check_blocks.push(pos);
+				}
+
+				if check_y > 0 {
+					let pos = (check_x, check_y - 1);
+					check_blocks.push(pos);
+				}
+
+				if check_y < self.height as i32 - 1 {
+					let pos = (check_x, check_y + 1);
+					check_blocks.push(pos);
+				}
+			}
+		}
+
+		if matched_count >= kind.minimum_clear_count() {
+			for ((x, y), matches) in match_map.iter() {
+				if !matches {
+					continue;
+				}
+
+				let column = &mut self.columns[*x as usize];
+				let block = &mut column.grounded_blocks[*y as usize];
+				block.clear_timer = Some(0.15);
+			}
+		}
+	}
+
+	pub fn get_kind_at(&self, x: i32, y: i32) -> Option<BlockKind> {
+		if x < 0 || x >= self.width as i32 {
+			return None;
+		}
+
+		if y < 0 || y >= self.height as i32 {
+			return None;
+		}
+
+		let column = &self.columns[x as usize];
+		let block = column.grounded_blocks.get(y as usize);
+		match block {
+			Some(block) => match block.clear_timer {
+				Some(timer) => None,
+				None => Some(block.kind)
+			}
+			None => None
+		}
+	}
 
 	pub fn get_valid_block_kind_for_column(&mut self, interface: &mut PlatformInterface, x: u32) -> BlockKind {
 		let column = &self.columns[x as usize];
@@ -77,7 +164,7 @@ impl Field {
 		};
 
 		let left_block_kind = if x > 0 {self.get_column_block_kind_at_height(x - 1, column_height as u32)} else {None};
-		let right_block_kind = if x < FIELD_WIDTH - 1 {self.get_column_block_kind_at_height(x + 1, column_height as u32)} else {None};
+		let right_block_kind = if x < self.width - 1 {self.get_column_block_kind_at_height(x + 1, column_height as u32)} else {None};
 
 		let mut kind = BlockKind::random_kind(interface);
 		while Some(kind) == top_block_kind || Some(kind) == left_block_kind || Some(kind) == right_block_kind {
@@ -110,11 +197,11 @@ impl Field {
 		while self.spawn_timer >= SPAWN_TIMER {
 			self.spawn_timer -= SPAWN_TIMER;
 
-			let x = interface.rng.gen_range(0..FIELD_WIDTH);
+			let x = interface.rng.gen_range(0..self.width);
 			let kind = self.get_valid_block_kind_for_column(interface, x);
 			let column = &mut self.columns[x as usize];
-			let block = column.create_block(FIELD_HEIGHT as f64, false, kind);
-			column.drop_block(block, FIELD_HEIGHT as f64);
+			let block = column.create_block(self.height as f64 + 4.0, false, kind);
+			column.drop_block(block, self.height as f64 + 4.0);
 		}
 	}
 }

@@ -26,11 +26,50 @@ impl Column {
     }
 
 	pub fn tick(&mut self, interface: &mut PlatformInterface, delta: f64) -> Vec<usize> {
-		let mut indices_to_remove = vec![];
+        let mut cleared_blocks = vec![];
+        for index in 0..self.grounded_blocks.len() {
+            let block = &mut self.grounded_blocks[index];
+            block.tick(interface, delta);
+            if let Some(timer) = block.clear_timer {
+                if timer <= 0.0 {
+                    cleared_blocks.push(index);
+                }
+            }
+        }
 
+        cleared_blocks.reverse();
+        for index in cleared_blocks.iter() {
+            self.grounded_blocks.remove(*index);
+            while self.grounded_blocks.len() > *index {
+                let mut block = self.grounded_blocks.remove(*index);
+                block.y_velocity = 0.0;
+                block.grounded = false;
+                self.falling_blocks.push(block);
+            }
+        }
+
+        for block in self.falling_blocks.iter_mut() {
+            block.tick(interface, delta);
+        }
+
+        let mut falling_cleared_blocks = vec![];
+        for index in 0..self.falling_blocks.len() {
+			let block = &self.falling_blocks[index];
+            if let Some(timer) = block.clear_timer {
+                if timer <= 0.0 {
+                    falling_cleared_blocks.push(index);
+                }
+            }
+        }
+
+        falling_cleared_blocks.reverse();
+        for index in falling_cleared_blocks.iter() {
+            self.falling_blocks.remove(*index);
+        }
+
+		let mut indices_to_remove = vec![];
 		for index in 0..self.falling_blocks.len() {
 			let block = &mut self.falling_blocks[index];
-            block.tick(interface, delta);
 
 			let block_y = block.y;
 			let ground_height = self.get_ground_height();
@@ -45,10 +84,6 @@ impl Column {
 		for index in indices_to_remove.iter() {
 			let block = self.falling_blocks.remove(*index);
 			heights_to_check.push(self.stack_block_grounded(block));
-		}
-
-		for block in self.grounded_blocks.iter_mut() {
-            block.tick(interface, delta);
         }
 
 		heights_to_check

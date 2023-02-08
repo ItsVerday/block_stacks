@@ -1,7 +1,7 @@
 use common::PlatformInterface;
 use rand::Rng;
 
-use crate::{BLOCK_SCALE, PADDING};
+use crate::{BLOCK_SCALE, PADDING, util};
 
 #[derive(Copy, Clone, PartialEq, PartialOrd, Ord, Eq, Hash, Debug)]
 pub enum BlockKind {
@@ -27,12 +27,7 @@ impl BlockKind {
     }
 
     pub fn draw_bordered_rectangle(interface: &mut PlatformInterface, x: f64, y: f64, color1: u8, color2: u8) {
-        for x_offset in 0..BLOCK_SCALE as u32 {
-            for y_offset in 0..BLOCK_SCALE as u32 {
-                let color = if x_offset == 0 || y_offset == 0 {color2} else {color1};
-                interface.set_pixel(x + x_offset as f64 + PADDING, y + y_offset as f64 - PADDING, color);
-            }
-        }
+        util::draw_bordered_rectangle(interface, x + PADDING, y - PADDING, BLOCK_SCALE as u32, BLOCK_SCALE as u32, color1, color2);
     }
 
     pub fn draw_instance(&self, interface: &mut PlatformInterface, time: f64, x: f64, y: f64) {
@@ -44,5 +39,20 @@ impl BlockKind {
             Self::Lightning => BlockKind::draw_bordered_rectangle(interface, x, y, 4, 3),
             Self::Magic => BlockKind::draw_bordered_rectangle(interface, x, y, 33, 32)
         }
+    }
+
+    pub fn matches(&self, other: BlockKind) -> bool {
+        match self {
+            Self::Fire => other == Self::Fire,
+            Self::Ice => other == Self::Ice,
+            Self::Plant => other == Self::Plant,
+            Self::Water => other == Self::Water,
+            Self::Lightning => other == Self::Lightning,
+            Self::Magic => other == Self::Magic
+        }
+    }
+
+    pub fn minimum_clear_count(&self) -> u32 {
+        3
     }
 }

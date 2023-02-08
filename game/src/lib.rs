@@ -1,4 +1,5 @@
 pub mod palette;
+pub mod util;
 pub mod blocks {
 	pub mod field;
 	pub mod column;
