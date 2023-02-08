@@ -3,6 +3,7 @@ use rand::Rng;
 
 use crate::{BLOCK_SCALE, PADDING};
 
+#[derive(Copy, Clone, PartialEq, PartialOrd, Ord, Eq, Hash, Debug)]
 pub enum BlockType {
     Fire,
     Ice,

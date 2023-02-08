@@ -17,6 +17,7 @@ const FIELD_HEIGHT: u32 = 20;
 const BLOCK_SCALE: f64 = 10.0;
 const GRAVITY_FACTOR: f64 = 12.0;
 const PADDING: f64 = 20.0;
+const SPAWN_TIMER: f64 = 1.5;
 
 pub struct GameState {
 	pub field: Field,

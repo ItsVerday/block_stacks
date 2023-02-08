@@ -25,7 +25,7 @@ impl Column {
         }
     }
 
-	pub fn tick(&mut self, interface: &mut PlatformInterface, delta: f64) {
+	pub fn tick(&mut self, interface: &mut PlatformInterface, delta: f64) -> Vec<usize> {
 		let mut indices_to_remove = vec![];
 
 		for index in 0..self.falling_blocks.len() {
@@ -41,14 +41,17 @@ impl Column {
 
 		indices_to_remove.reverse();
 
+		let mut heights_to_check = vec![];
 		for index in indices_to_remove.iter() {
 			let block = self.falling_blocks.remove(*index);
-			self.stack_block_grounded(block);
+			heights_to_check.push(self.stack_block_grounded(block));
 		}
 
 		for block in self.grounded_blocks.iter_mut() {
             block.tick(interface, delta);
         }
+
+		heights_to_check
 	}
 
     pub fn draw(&mut self, interface: &mut PlatformInterface, time: f64, scale: f64) {
@@ -62,17 +65,18 @@ impl Column {
     }
 
 	pub fn create_block(&mut self, y: f64, grounded: bool, kind: BlockType) -> Block {
-		let mut block = Block::new(self.x, y, grounded, kind);
+		let block = Block::new(self.x, y, grounded, kind);
 		block
 	}
 
-    pub fn stack_block_grounded(&mut self, mut block: Block) {
+    pub fn stack_block_grounded(&mut self, mut block: Block) -> usize {
         let grounded_y = self.get_ground_height();
 
         block.x = self.x;
         block.grounded = true;
         block.y = grounded_y;
         self.grounded_blocks.push(block);
+		self.grounded_blocks.len() - 1
     }
 
 	pub fn drop_block(&mut self, mut block: Block, height: f64) {
