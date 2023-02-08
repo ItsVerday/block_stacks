@@ -71,8 +71,17 @@ impl Cursor {
 			}
 		}
 
+		if interface.input_pressed(common::Button::KeyA) {
+			self.rotate_offset = -1.0;
+		}
+
+		if interface.input_pressed(common::Button::KeyD) {
+			self.rotate_offset = 1.0;
+		}
+
 		self.x_offset *= 0.1_f64.powf(delta * 3.0);
 		self.y_offset *= 0.1_f64.powf(delta * 3.0);
+		self.rotate_offset *= 0.1_f64.powf(delta * 3.0);
 		self.x_cooldown -= delta;
 		self.y_cooldown -= delta;
 	}
@@ -91,9 +100,23 @@ impl Cursor {
 		let block_x = self.x as f64 * BLOCK_SCALE - 1.0;
 		let block_y = interface.height as f64 - self.y as f64 * BLOCK_SCALE;
 
-		self.draw_corner(interface, block_x + self.x_offset - animation_offset, block_y + self.y_offset + animation_offset, true, false);
-		self.draw_corner(interface, block_x + self.x_offset - animation_offset, block_y - BLOCK_SCALE * 2.0 - 1.0 + self.y_offset - animation_offset, true, true);
-		self.draw_corner(interface, block_x + self.x_offset + animation_offset + BLOCK_SCALE * 2.0 + 1.0, block_y + self.y_offset + animation_offset, false, false);
-		self.draw_corner(interface, block_x + self.x_offset + animation_offset + BLOCK_SCALE * 2.0 + 1.0, block_y - BLOCK_SCALE * 2.0 - 1.0 + self.y_offset - animation_offset, false, true);
+		let double_block_scale = BLOCK_SCALE * 2.0 + 1.0;
+
+		self.draw_corner(interface,
+			block_x + self.x_offset - animation_offset - self.rotate_offset,
+			block_y + self.y_offset + animation_offset - self.rotate_offset,
+			true, false);
+		self.draw_corner(interface,
+			block_x + self.x_offset - animation_offset + self.rotate_offset,
+			block_y - double_block_scale + self.y_offset - animation_offset - self.rotate_offset,
+			true, true);
+		self.draw_corner(interface,
+			block_x + self.x_offset + animation_offset + double_block_scale - self.rotate_offset,
+			block_y + self.y_offset + animation_offset + self.rotate_offset,
+			false, false);
+		self.draw_corner(interface,
+			block_x + self.x_offset + animation_offset + double_block_scale + self.rotate_offset,
+			block_y - double_block_scale + self.y_offset - animation_offset + self.rotate_offset,
+			false, true);
 	}
 }
