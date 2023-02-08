@@ -4,7 +4,7 @@ use rand::Rng;
 use crate::{BLOCK_SCALE, PADDING};
 
 #[derive(Copy, Clone, PartialEq, PartialOrd, Ord, Eq, Hash, Debug)]
-pub enum BlockType {
+pub enum BlockKind {
     Fire,
     Ice,
     Plant,
@@ -13,8 +13,8 @@ pub enum BlockType {
     Magic
 }
 
-impl BlockType {
-    pub fn random_type(interface: &mut PlatformInterface) -> BlockType {
+impl BlockKind {
+    pub fn random_kind(interface: &mut PlatformInterface) -> BlockKind {
         match interface.rng.gen_range(0..6) {
             0 => Self::Fire,
             1 => Self::Ice,
@@ -37,12 +37,12 @@ impl BlockType {
 
     pub fn draw_instance(&self, interface: &mut PlatformInterface, time: f64, x: f64, y: f64) {
         match self {
-            Self::Fire => BlockType::draw_bordered_rectangle(interface, x, y, 27, 28),
-            Self::Ice => BlockType::draw_bordered_rectangle(interface, x, y, 14, 13),
-            Self::Plant => BlockType::draw_bordered_rectangle(interface, x, y, 6, 7),
-            Self::Water => BlockType::draw_bordered_rectangle(interface, x, y, 12, 11),
-            Self::Lightning => BlockType::draw_bordered_rectangle(interface, x, y, 4, 3),
-            Self::Magic => BlockType::draw_bordered_rectangle(interface, x, y, 33, 32)
+            Self::Fire => BlockKind::draw_bordered_rectangle(interface, x, y, 27, 28),
+            Self::Ice => BlockKind::draw_bordered_rectangle(interface, x, y, 14, 13),
+            Self::Plant => BlockKind::draw_bordered_rectangle(interface, x, y, 6, 7),
+            Self::Water => BlockKind::draw_bordered_rectangle(interface, x, y, 12, 11),
+            Self::Lightning => BlockKind::draw_bordered_rectangle(interface, x, y, 4, 3),
+            Self::Magic => BlockKind::draw_bordered_rectangle(interface, x, y, 33, 32)
         }
     }
 }

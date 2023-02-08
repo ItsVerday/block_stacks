@@ -2,7 +2,7 @@ use common::PlatformInterface;
 
 use crate::{BLOCK_SCALE, GRAVITY_FACTOR};
 
-use super::block_type::BlockType;
+use super::block_kind::BlockKind;
 
 pub struct Block {
     pub x: u32,
@@ -10,11 +10,11 @@ pub struct Block {
 	pub y_velocity: f64,
     pub grounded: bool,
 
-    pub kind: BlockType
+    pub kind: BlockKind
 }
 
 impl Block {
-    pub fn new(x: u32, y: f64, grounded: bool, kind: BlockType) -> Block {
+    pub fn new(x: u32, y: f64, grounded: bool, kind: BlockKind) -> Block {
         Block {
             x,
             y,

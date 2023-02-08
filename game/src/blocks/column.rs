@@ -2,7 +2,7 @@ use std::vec;
 
 use common::PlatformInterface;
 
-use super::{block::Block, block_type::BlockType};
+use super::{block::Block, block_kind::BlockKind};
 
 pub struct Column {
     pub x: u32,
@@ -64,7 +64,7 @@ impl Column {
         }
     }
 
-	pub fn create_block(&mut self, y: f64, grounded: bool, kind: BlockType) -> Block {
+	pub fn create_block(&mut self, y: f64, grounded: bool, kind: BlockKind) -> Block {
 		let block = Block::new(self.x, y, grounded, kind);
 		block
 	}

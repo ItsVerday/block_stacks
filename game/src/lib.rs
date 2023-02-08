@@ -3,7 +3,7 @@ pub mod blocks {
 	pub mod field;
 	pub mod column;
 	pub mod block;
-	pub mod block_type;
+	pub mod block_kind;
 
 	pub mod cursor;
 }
@@ -37,7 +37,7 @@ pub fn init(interface: &mut PlatformInterface) -> GameState {
 
     GameState {
 		field: Field::new(interface, FIELD_WIDTH, FIELD_HEIGHT),
-		cursor: Cursor::new(FIELD_WIDTH / 2 - 1, 4)
+		cursor: Cursor::new(FIELD_WIDTH / 2 - 1, 2)
 	}
 }
 
