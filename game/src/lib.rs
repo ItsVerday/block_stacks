@@ -16,9 +16,17 @@ use blocks::{field::Field, cursor::Cursor};
 const FIELD_WIDTH: u32 = 10;
 const FIELD_HEIGHT: u32 = 20;
 const BLOCK_SCALE: f64 = 10.0;
-const GRAVITY_FACTOR: f64 = 12.0;
+const GRAVITY_FACTOR: f64 = 10.0;
 const PADDING: f64 = 20.0;
 const SPAWN_TIMER: f64 = 1.5;
+
+// Controls
+const UP_BUTTON: Button = Button::KeyW;
+const DOWN_BUTTON: Button = Button::KeyS;
+const LEFT_BUTTON: Button = Button::KeyA;
+const RIGHT_BUTTON: Button = Button::KeyD;
+const ROTATE_CLOCKWISE_BUTTON: Button = Button::MouseLeft;
+const ROTATE_COUNTER_CLOCKWISE_BUTTON: Button = Button::MouseRight;
 
 pub struct GameState {
 	pub field: Field,
@@ -43,8 +51,8 @@ pub fn init(interface: &mut PlatformInterface) -> GameState {
 }
 
 pub fn tick(state: &mut GameState, interface: &mut PlatformInterface, delta: f64) {
-	state.field.tick(interface, delta);
 	state.cursor.tick(interface, delta);
+ 	state.field.tick(interface, &state.cursor, delta);
 }
 
 pub fn draw(state: &mut GameState, interface: &mut PlatformInterface, time: f64) {

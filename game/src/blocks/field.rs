@@ -1,8 +1,8 @@
 use std::{vec, collections::HashMap};
 
-use crate::SPAWN_TIMER;
+use crate::{SPAWN_TIMER, ROTATE_CLOCKWISE_BUTTON, ROTATE_COUNTER_CLOCKWISE_BUTTON};
 
-use super::{column::Column, block_kind::BlockKind};
+use super::{column::Column, block_kind::BlockKind, cursor::Cursor, block::Block};
 use common::PlatformInterface;
 use rand::Rng;
 
@@ -46,8 +46,19 @@ impl Field {
         }
     }
 
-	pub fn tick(&mut self, interface: &mut PlatformInterface, delta: f64) {
+	pub fn tick(&mut self, interface: &mut PlatformInterface, cursor: &Cursor, delta: f64) {
 		self.handle_spawning(interface, delta);
+
+		let clockwise = interface.input_pressed(ROTATE_CLOCKWISE_BUTTON);
+		let counter_clockwise = interface.input_pressed(ROTATE_COUNTER_CLOCKWISE_BUTTON);
+
+		if clockwise && !counter_clockwise {
+			self.rotate_blocks(cursor, true);
+		}
+
+		if counter_clockwise && !clockwise {
+			self.rotate_blocks(cursor, false);
+		}
 
 		let mut check_blocks = vec![];
 
@@ -68,6 +79,62 @@ impl Field {
             column.draw(interface, time, scale);
         }
     }
+
+	pub fn handle_spawning(&mut self, interface: &mut PlatformInterface, delta: f64) {
+		self.spawn_timer += delta;
+
+		while self.spawn_timer >= SPAWN_TIMER {
+			self.spawn_timer -= SPAWN_TIMER;
+
+			let x = interface.rng.gen_range(0..self.width);
+			let kind = self.get_valid_block_kind_for_column(interface, x);
+			let column = &mut self.columns[x as usize];
+			let block = column.create_block(self.height as f64 + 4.0, false, kind);
+			column.drop_block(block, self.height as f64 + 4.0);
+		}
+	}
+
+	pub fn rotate_blocks(&mut self, cursor: &Cursor, is_clockwise: bool) {
+		let cursor_x = cursor.x;
+		let cursor_y = cursor.y;
+
+		let old_block_00 = self.take_any_block_at(cursor_x as i32, cursor_y as i32);
+		let old_block_10 = self.take_any_block_at(cursor_x as i32 + 1, cursor_y as i32);
+		let old_block_01 = self.take_any_block_at(cursor_x as i32, cursor_y as i32 + 1);
+		let old_block_11 = self.take_any_block_at(cursor_x as i32 + 1, cursor_y as i32 + 1);
+
+		let (mut block_00, mut block_01, mut block_10, mut block_11) = (old_block_00, old_block_01, old_block_10, old_block_11);
+
+		if is_clockwise {
+			(block_00, block_01, block_10, block_11) = (block_10, block_00, block_11, block_01);
+		} else {
+			(block_00, block_01, block_10, block_11) = (block_01, block_11, block_00, block_10);
+		}
+
+		if let Some(block) = block_00 {
+			self.insert_block_at(block, cursor_x, cursor_y);	
+		}
+
+		if let Some(block) = block_10 {
+			self.insert_block_at(block, cursor_x + 1, cursor_y);	
+		}
+
+		if let Some(block) = block_01 {
+			self.insert_block_at(block, cursor_x, cursor_y + 1);	
+		}
+
+		if let Some(block) = block_11 {
+			self.insert_block_at(block, cursor_x + 1, cursor_y + 1);	
+		}
+
+		self.fix_column(cursor_x as i32);
+		self.fix_column(cursor_x as i32 + 1);
+
+		self.check_match(cursor_x as i32, cursor_y as i32);
+		self.check_match(cursor_x as i32 + 1, cursor_y as i32);
+		self.check_match(cursor_x as i32, cursor_y as i32 + 1);
+		self.check_match(cursor_x as i32 + 1, cursor_y as i32 + 1);
+	}
 
 	pub fn check_match(&mut self, x: i32, y: i32) {
 		let kind = self.get_kind_at(x, y);
@@ -132,6 +199,111 @@ impl Field {
 		}
 	}
 
+	pub fn take_any_block_at(&mut self, x: i32, y: i32) -> Option<Block> {
+		if x < 0 || x >= self.width as i32 {
+			return None;
+		}
+
+		if y < 0 || y >= self.height as i32 {
+			return None;
+		}
+
+		let column = &mut self.columns[x as usize];
+
+		let pop_index = 'idx: {
+			for index in 0..column.grounded_blocks.len() {
+				let block = &column.grounded_blocks[index];
+				if (block.y - y as f64).abs() < 0.5 {
+					break 'idx Some(index);
+				}
+			}
+
+			None
+		};
+
+		if let Some(index) = pop_index {
+			return Some(column.grounded_blocks.remove(index));
+		}
+
+		let pop_index = 'idx: {
+			for index in 0..column.falling_blocks.len() {
+				let block = &column.falling_blocks[index];
+				if (block.y - y as f64).abs() < 0.5 {
+					break 'idx Some(index);
+				}
+			}
+
+			None
+		};
+
+		if let Some(index) = pop_index {
+			return Some(column.falling_blocks.remove(index));
+		}
+
+		None
+	}
+
+	pub fn insert_block_at(&mut self, mut block: Block, x: u32, y: u32) {
+		if x >= self.width as u32 {
+			return;
+		}
+
+		if y >= self.height as u32 {
+			return;
+		}
+
+		block.x = x;
+		block.y = y as f64;
+		block.y_velocity = 0.0;
+
+		let column = &mut self.columns[x as usize];
+		let insert_index = 'idx: {
+			for index in 0..=column.grounded_blocks.len() {
+				if (index >= column.grounded_blocks.len() || column.grounded_blocks[index].y > y as f64)
+					&& (index == 0 || column.grounded_blocks[index - 1].y < y as f64 && index == column.grounded_blocks.len()) {
+					break 'idx Some(index);
+				}
+			}
+
+			None
+		};
+
+		if let Some(index) = insert_index {
+			block.grounded = true;
+			column.grounded_blocks.insert(index, block);
+			return;
+		}
+
+		block.grounded = false;
+		column.falling_blocks.push(block);
+	}
+
+	pub fn fix_column(&mut self, x: i32) {
+		let column = &mut self.columns[x as usize];
+
+		let fall_index = 'idx: {
+			let mut prev_y = -1.0;
+			for index in 0..column.grounded_blocks.len() {
+				let block = &column.grounded_blocks[index];
+				let is_valid = (prev_y + 1.0 - block.y).abs() < 0.01;
+				prev_y = block.y;
+				if !is_valid {
+					break 'idx Some(index);
+				}
+			}
+
+			None
+		};
+
+		if let Some(index) = fall_index {
+			while column.grounded_blocks.len() > index {
+				let mut block = column.grounded_blocks.remove(index);
+				block.grounded = false;
+				column.falling_blocks.push(block);
+			}
+		}
+	}
+
 	pub fn get_kind_at(&self, x: i32, y: i32) -> Option<BlockKind> {
 		if x < 0 || x >= self.width as i32 {
 			return None;
@@ -145,7 +317,7 @@ impl Field {
 		let block = column.grounded_blocks.get(y as usize);
 		match block {
 			Some(block) => match block.clear_timer {
-				Some(timer) => None,
+				Some(_) => None,
 				None => Some(block.kind)
 			}
 			None => None
@@ -188,20 +360,6 @@ impl Field {
 			Some(column.falling_blocks[index as usize].kind)
 		} else {
 			None
-		}
-	}
-
-	pub fn handle_spawning(&mut self, interface: &mut PlatformInterface, delta: f64) {
-		self.spawn_timer += delta;
-
-		while self.spawn_timer >= SPAWN_TIMER {
-			self.spawn_timer -= SPAWN_TIMER;
-
-			let x = interface.rng.gen_range(0..self.width);
-			let kind = self.get_valid_block_kind_for_column(interface, x);
-			let column = &mut self.columns[x as usize];
-			let block = column.create_block(self.height as f64 + 4.0, false, kind);
-			column.drop_block(block, self.height as f64 + 4.0);
 		}
 	}
 }

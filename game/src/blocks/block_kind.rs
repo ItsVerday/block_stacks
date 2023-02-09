@@ -30,7 +30,7 @@ impl BlockKind {
         util::draw_bordered_rectangle(interface, x + PADDING, y - PADDING, BLOCK_SCALE as u32, BLOCK_SCALE as u32, color1, color2);
     }
 
-    pub fn draw_instance(&self, interface: &mut PlatformInterface, time: f64, x: f64, y: f64) {
+    pub fn draw_instance(&self, interface: &mut PlatformInterface, _time: f64, x: f64, y: f64) {
         match self {
             Self::Fire => BlockKind::draw_bordered_rectangle(interface, x, y, 27, 28),
             Self::Ice => BlockKind::draw_bordered_rectangle(interface, x, y, 14, 13),

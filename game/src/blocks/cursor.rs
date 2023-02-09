@@ -1,6 +1,6 @@
 use common::PlatformInterface;
 
-use crate::{FIELD_HEIGHT, FIELD_WIDTH, BLOCK_SCALE, PADDING};
+use crate::{FIELD_HEIGHT, FIELD_WIDTH, BLOCK_SCALE, PADDING, UP_BUTTON, DOWN_BUTTON, LEFT_BUTTON, RIGHT_BUTTON, ROTATE_COUNTER_CLOCKWISE_BUTTON, ROTATE_CLOCKWISE_BUTTON};
 
 pub struct Cursor {
 	pub x: u32,
@@ -29,11 +29,6 @@ impl Cursor {
 	}
 
 	pub fn tick(&mut self, interface: &mut PlatformInterface, delta: f64) {
-		const UP_BUTTON: common::Button = common::Button::KeyUp;
-		const DOWN_BUTTON: common::Button = common::Button::KeyDown;
-		const LEFT_BUTTON: common::Button = common::Button::KeyLeft;
-		const RIGHT_BUTTON: common::Button = common::Button::KeyRight;
-
 		let up = interface.input_down(UP_BUTTON) && self.y_cooldown <= 0.0 || interface.input_pressed(UP_BUTTON);
 		let down = interface.input_down(DOWN_BUTTON) && self.y_cooldown <= 0.0 || interface.input_pressed(DOWN_BUTTON);
 		let left = interface.input_down(LEFT_BUTTON) && self.x_cooldown <= 0.0 || interface.input_pressed(LEFT_BUTTON);
@@ -71,11 +66,11 @@ impl Cursor {
 			}
 		}
 
-		if interface.input_pressed(common::Button::KeyA) {
+		if interface.input_pressed(ROTATE_COUNTER_CLOCKWISE_BUTTON) {
 			self.rotate_offset = -1.0;
 		}
 
-		if interface.input_pressed(common::Button::KeyD) {
+		if interface.input_pressed(ROTATE_CLOCKWISE_BUTTON) {
 			self.rotate_offset = 1.0;
 		}
 
@@ -94,7 +89,7 @@ impl Cursor {
 		}
 	}
 
-	pub fn draw(&mut self, interface: &mut PlatformInterface, time: f64, scale: f64) {
+	pub fn draw(&mut self, interface: &mut PlatformInterface, time: f64, _scale: f64) {
 		let animation_offset = if time % 1.5 < 0.75 {0.0} else {1.0};
 
 		let block_x = self.x as f64 * BLOCK_SCALE - 1.0;

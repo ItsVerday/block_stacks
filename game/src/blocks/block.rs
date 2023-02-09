@@ -26,7 +26,7 @@ impl Block {
         }
     }
 
-	pub fn tick(&mut self, interface: &mut PlatformInterface, delta: f64) {
+	pub fn tick(&mut self, _interface: &mut PlatformInterface, delta: f64) {
 		if !self.grounded {
 			self.y_velocity += GRAVITY_FACTOR * delta;
 			self.y -= self.y_velocity * delta;

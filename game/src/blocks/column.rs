@@ -29,6 +29,7 @@ impl Column {
         let mut cleared_blocks = vec![];
         for index in 0..self.grounded_blocks.len() {
             let block = &mut self.grounded_blocks[index];
+			block.y_velocity = 0.0;
             block.tick(interface, delta);
             if let Some(timer) = block.clear_timer {
                 if timer <= 0.0 {
