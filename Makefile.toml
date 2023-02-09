@@ -19,5 +19,5 @@ dependencies = ["run_wasm_pack"]
 script='''
 copy "web/build" "target/makefile/wasm_pack"
 cd target/makefile/wasm_pack
-npx --yes parcel build --no-source-maps --no-content-hash --dist-dir "../../../dist/web/" --public-url "./" index.html
+npx --yes parcel build --no-source-maps --no-content-hash --dist-dir "../../../docs/" --public-url "./" index.html
 '''
