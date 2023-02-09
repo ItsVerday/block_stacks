@@ -1,1 +1,2 @@
-To build the game, run `cargo make build`
+# Building
+To build the web version of the game, you will need to install [cargo-make](https://github.com/sagiegurari/cargo-make) and [Node.js](https://nodejs.org/en/) (for Parcel, used to bundle the web version). The files will be generated and placed in the `docs/` folder automatically (this is what GitHub Pages uses as the website root directory).
