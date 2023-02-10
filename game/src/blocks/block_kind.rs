@@ -1,7 +1,7 @@
 use common::PlatformInterface;
 use rand::Rng;
 
-use crate::{BLOCK_SCALE, PADDING, util};
+use crate::{BLOCK_SCALE, PADDING, render::basic};
 
 #[derive(Copy, Clone, PartialEq, PartialOrd, Ord, Eq, Hash, Debug)]
 pub enum BlockKind {
@@ -27,7 +27,7 @@ impl BlockKind {
     }
 
     pub fn draw_bordered_rectangle(interface: &mut PlatformInterface, x: f64, y: f64, color1: u8, color2: u8) {
-        util::draw_bordered_rectangle(interface, x + PADDING, y - PADDING, BLOCK_SCALE as u32, BLOCK_SCALE as u32, color1, color2);
+        basic::draw_bordered_rectangle(interface, x + PADDING, y - PADDING, BLOCK_SCALE as u32, BLOCK_SCALE as u32, color1, color2);
     }
 
     pub fn draw_instance(&self, interface: &mut PlatformInterface, _time: f64, x: f64, y: f64) {

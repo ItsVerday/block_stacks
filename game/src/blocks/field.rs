@@ -23,6 +23,7 @@ impl Field {
         for x in 0..width {
             let mut column = Column::new(x, height);
             for y in 0..4 {
+				
 				let mut kind = BlockKind::random_kind(interface);
 				while Some(&kind) == current_kinds.last() || Some(&kind) == previous_kinds.get(y) {
 					kind = BlockKind::random_kind(interface);
@@ -63,9 +64,10 @@ impl Field {
 		let mut check_blocks = vec![];
 
 		for column in self.columns.iter_mut() {
-            let blocks_to_check = column.tick(interface, delta);
-			for height in blocks_to_check.into_iter() {
-				check_blocks.push((column.x, height));
+            if column.tick(interface, delta) {
+				for height in 0..column.grounded_blocks.len() {
+					check_blocks.push((column.x, height));
+				}
 			}
         }
 
@@ -260,7 +262,7 @@ impl Field {
 		let insert_index = 'idx: {
 			for index in 0..=column.grounded_blocks.len() {
 				if (index >= column.grounded_blocks.len() || column.grounded_blocks[index].y > y as f64)
-					&& (index == 0 || column.grounded_blocks[index - 1].y < y as f64 && index == column.grounded_blocks.len()) {
+					&& (index == 0 || column.grounded_blocks[index - 1].y < y as f64) {
 					break 'idx Some(index);
 				}
 			}

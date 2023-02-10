@@ -1,5 +1,9 @@
-pub mod palette;
-pub mod util;
+pub mod render {
+	pub mod palette;
+	pub mod basic;
+	pub mod text;
+}
+
 pub mod blocks {
 	pub mod field;
 	pub mod column;
@@ -42,7 +46,7 @@ pub fn requested_tickrate() -> u32 {
 }
 
 pub fn init(interface: &mut PlatformInterface) -> GameState {
-	palette::load_palette(interface);
+	render::palette::load_palette(interface);
 
     GameState {
 		field: Field::new(interface, FIELD_WIDTH, FIELD_HEIGHT),
@@ -59,4 +63,6 @@ pub fn draw(state: &mut GameState, interface: &mut PlatformInterface, time: f64)
     interface.set_background(20);
 	state.field.draw(interface, time, BLOCK_SCALE);
 	state.cursor.draw(interface, time, BLOCK_SCALE);
+
+	render::text::draw_text(interface, "AAAAA", 2.0, 2.0, 15);
 }

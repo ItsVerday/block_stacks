@@ -1,6 +1,6 @@
 use common::PlatformInterface;
 
-use crate::{BLOCK_SCALE, GRAVITY_FACTOR, util, PADDING};
+use crate::{BLOCK_SCALE, GRAVITY_FACTOR, render::basic, PADDING};
 
 use super::block_kind::BlockKind;
 
@@ -42,12 +42,12 @@ impl Block {
             None => self.draw_kind(interface, time, scale),
             Some(timer) => {
                 if timer < 0.05 {
-                    util::draw_rectangle(interface,
+                    basic::draw_rectangle(interface,
                         self.x as f64 * scale + PADDING,
                         interface.height as f64 - BLOCK_SCALE - self.y * scale - PADDING,
                         BLOCK_SCALE as u32, BLOCK_SCALE as u32, 15);
                 } else if timer < 0.15 {
-                    util::draw_bordered_rectangle(interface,
+                    basic::draw_bordered_rectangle(interface,
                         self.x as f64 * scale + PADDING,
                         interface.height as f64 - BLOCK_SCALE - self.y * scale - PADDING,
                         BLOCK_SCALE as u32, BLOCK_SCALE as u32, 15, 16);

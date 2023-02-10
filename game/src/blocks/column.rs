@@ -25,7 +25,8 @@ impl Column {
         }
     }
 
-	pub fn tick(&mut self, interface: &mut PlatformInterface, delta: f64) -> Vec<usize> {
+	pub fn tick(&mut self, interface: &mut PlatformInterface, delta: f64) -> bool {
+        let mut check_clear = false;
         let mut cleared_blocks = vec![];
         for index in 0..self.grounded_blocks.len() {
             let block = &mut self.grounded_blocks[index];
@@ -38,19 +39,26 @@ impl Column {
             }
         }
 
-        cleared_blocks.reverse();
-        for index in cleared_blocks.iter() {
-            self.grounded_blocks.remove(*index);
-            while self.grounded_blocks.len() > *index {
-                let mut block = self.grounded_blocks.remove(*index);
-                block.y_velocity = 0.0;
-                block.grounded = false;
-                self.falling_blocks.push(block);
-            }
-        }
-
         for block in self.falling_blocks.iter_mut() {
             block.tick(interface, delta);
+        }
+
+        let mut indices_to_remove = vec![];
+		for index in 0..self.falling_blocks.len() {
+			let block = &mut self.falling_blocks[index];
+
+			let block_y = block.y;
+			let ground_height = self.get_ground_height();
+			if block_y <= ground_height {
+				indices_to_remove.push(index);
+			}
+        }
+
+		indices_to_remove.reverse();
+		for index in indices_to_remove.iter() {
+			let block = self.falling_blocks.remove(*index);
+            self.stack_block_grounded(block);
+            check_clear = true;
         }
 
         let mut falling_cleared_blocks = vec![];
@@ -68,26 +76,18 @@ impl Column {
             self.falling_blocks.remove(*index);
         }
 
-		let mut indices_to_remove = vec![];
-		for index in 0..self.falling_blocks.len() {
-			let block = &mut self.falling_blocks[index];
-
-			let block_y = block.y;
-			let ground_height = self.get_ground_height();
-			if block_y <= ground_height {
-				indices_to_remove.push(index);
-			}
+        cleared_blocks.reverse();
+        for index in cleared_blocks.iter() {
+            self.grounded_blocks.remove(*index);
+            while self.grounded_blocks.len() > *index {
+                let mut block = self.grounded_blocks.remove(*index);
+                block.y_velocity = 0.0;
+                block.grounded = false;
+                self.falling_blocks.push(block);
+            }
         }
 
-		indices_to_remove.reverse();
-
-		let mut heights_to_check = vec![];
-		for index in indices_to_remove.iter() {
-			let block = self.falling_blocks.remove(*index);
-			heights_to_check.push(self.stack_block_grounded(block));
-        }
-
-		heights_to_check
+        check_clear
 	}
 
     pub fn draw(&mut self, interface: &mut PlatformInterface, time: f64, scale: f64) {
