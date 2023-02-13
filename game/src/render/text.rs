@@ -1,5 +1,12 @@
 use common::PlatformInterface;
 
+#[macro_export]
+macro_rules! text {
+	($interface:tt, $x:tt, $y:tt, $color:tt, $($arg:tt)*) => {{
+		render::text::draw_text($interface, &format!($($arg)*),  $x, $y, $color);
+    }};
+}
+
 const GLYPH_COUNT: usize = 37;
 static GLYPH_CHARS: [char; GLYPH_COUNT] = [
 	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -78,8 +85,8 @@ pub fn draw_text(interface: &mut PlatformInterface, string: &str, x: f64, y: f64
 
                 current_x += 1.0;
             }
-        }
 
-        current_x += 1.0;
+			current_x += 1.0;
+        }
     }
 }
