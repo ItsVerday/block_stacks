@@ -2,6 +2,8 @@ use std::vec;
 
 use common::PlatformInterface;
 
+use crate::data::{TickResult, Stats};
+
 use super::{block::Block, block_kind::BlockKind};
 
 pub struct Column {
@@ -25,22 +27,24 @@ impl Column {
         }
     }
 
-	pub fn tick(&mut self, interface: &mut PlatformInterface, delta: f64) -> bool {
+	pub fn tick(&mut self, interface: &mut PlatformInterface, delta: f64, stats: &Stats, result: &mut TickResult) -> bool {
         let mut check_clear = false;
         let mut cleared_blocks = vec![];
         for index in 0..self.grounded_blocks.len() {
             let block = &mut self.grounded_blocks[index];
 			block.y_velocity = 0.0;
-            block.tick(interface, delta);
+            block.tick(interface, delta, stats);
             if let Some(timer) = block.clear_timer {
                 if timer <= 0.0 {
                     cleared_blocks.push(index);
+                    result.blocks_cleared += 1;
+                    result.score_gained += block.clear_score;
                 }
             }
         }
 
         for block in self.falling_blocks.iter_mut() {
-            block.tick(interface, delta);
+            block.tick(interface, delta, stats);
         }
 
         let mut indices_to_remove = vec![];
@@ -67,6 +71,8 @@ impl Column {
             if let Some(timer) = block.clear_timer {
                 if timer <= 0.0 {
                     falling_cleared_blocks.push(index);
+                    result.blocks_cleared += 1;
+                    result.score_gained += block.clear_score;
                 }
             }
         }

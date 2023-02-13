@@ -2,7 +2,7 @@ use common::PlatformInterface;
 
 #[macro_export]
 macro_rules! text {
-	($interface:tt, $x:tt, $y:tt, $color:tt, $($arg:tt)*) => {{
+	($interface:tt, $x:tt, $y:tt, $color:tt; $($arg:tt)*) => {{
 		render::text::draw_text($interface, &format!($($arg)*),  $x, $y, $color);
     }};
 }

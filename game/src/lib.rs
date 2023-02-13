@@ -13,16 +13,17 @@ pub mod blocks {
 	pub mod cursor;
 }
 
+pub mod data;
+
 use common::*;
 use blocks::{field::Field, cursor::Cursor};
+use data::{blocks_for_level, Stats};
 
 // Game constants
 const FIELD_WIDTH: u32 = 10;
 const FIELD_HEIGHT: u32 = 20;
 const BLOCK_SCALE: f64 = 10.0;
-const GRAVITY_FACTOR: f64 = 10.0;
 const PADDING: f64 = 20.0;
-const SPAWN_TIMER: f64 = 1.5;
 
 // Controls
 const UP_BUTTON: Button = Button::KeyW;
@@ -34,7 +35,11 @@ const ROTATE_COUNTER_CLOCKWISE_BUTTON: Button = Button::MouseRight;
 
 pub struct GameState {
 	pub field: Field,
-	pub cursor: Cursor
+	pub cursor: Cursor,
+	pub blocks_cleared: u32,
+	pub score: u64,
+	pub level: u16,
+	pub blocks_to_next_level: i32
 }
 
 pub fn requested_size() -> (u32, u32) {
@@ -50,13 +55,27 @@ pub fn init(interface: &mut PlatformInterface) -> GameState {
 
     GameState {
 		field: Field::new(interface, FIELD_WIDTH, FIELD_HEIGHT),
-		cursor: Cursor::new(FIELD_WIDTH / 2 - 1, 2)
+		cursor: Cursor::new(FIELD_WIDTH / 2 - 1, 2),
+		blocks_cleared: 0,
+		score: 0,
+		level: 1,
+		blocks_to_next_level: blocks_for_level(1)
 	}
 }
 
 pub fn tick(state: &mut GameState, interface: &mut PlatformInterface, delta: f64) {
+	let game_stats = Stats::from(state.level);
+
 	state.cursor.tick(interface, delta);
- 	state.field.tick(interface, &state.cursor, delta);
+ 	let result = state.field.tick(interface, &state.cursor, delta, &game_stats);
+	state.blocks_cleared += result.blocks_cleared;
+	state.score += result.score_gained;
+
+	state.blocks_to_next_level -= result.blocks_cleared as i32;
+	while state.blocks_to_next_level <= 0 {
+		state.level += 1;
+		state.blocks_to_next_level += blocks_for_level(state.level);
+	}
 }
 
 pub fn draw(state: &mut GameState, interface: &mut PlatformInterface, time: f64) {
@@ -64,5 +83,8 @@ pub fn draw(state: &mut GameState, interface: &mut PlatformInterface, time: f64)
 	state.field.draw(interface, time, BLOCK_SCALE);
 	state.cursor.draw(interface, time, BLOCK_SCALE);
 
-	text!(interface, 2.0, 2.0, 15, "HELLO {}", "WORLD");
+	text!(interface, 132.0, 182.0, 15; "SCORE: {}", state.score);
+	text!(interface, 132.0, 192.0, 15; "LEVEL: {}", state.level);
+	text!(interface, 132.0, 202.0, 15; "BLOCKS CLEARED: {}", state.blocks_cleared);
+	text!(interface, 132.0, 212.0, 15; "BLOCKS TO LEVEL UP: {}", state.blocks_to_next_level);
 }

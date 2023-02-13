@@ -1,6 +1,6 @@
 use std::{vec, collections::HashMap};
 
-use crate::{SPAWN_TIMER, ROTATE_CLOCKWISE_BUTTON, ROTATE_COUNTER_CLOCKWISE_BUTTON};
+use crate::{ROTATE_CLOCKWISE_BUTTON, ROTATE_COUNTER_CLOCKWISE_BUTTON, data::{TickResult, Stats}};
 
 use super::{column::Column, block_kind::BlockKind, cursor::Cursor, block::Block};
 use common::PlatformInterface;
@@ -47,8 +47,13 @@ impl Field {
         }
     }
 
-	pub fn tick(&mut self, interface: &mut PlatformInterface, cursor: &Cursor, delta: f64) {
-		self.handle_spawning(interface, delta);
+	pub fn tick(&mut self, interface: &mut PlatformInterface, cursor: &Cursor, delta: f64, stats: &Stats) -> TickResult {
+		let mut result = TickResult {
+			blocks_cleared: 0,
+			score_gained: 0
+		};
+
+		self.handle_spawning(interface, delta, stats);
 
 		let clockwise = interface.input_pressed(ROTATE_CLOCKWISE_BUTTON);
 		let counter_clockwise = interface.input_pressed(ROTATE_COUNTER_CLOCKWISE_BUTTON);
@@ -64,7 +69,7 @@ impl Field {
 		let mut check_blocks = vec![];
 
 		for column in self.columns.iter_mut() {
-            if column.tick(interface, delta) {
+            if column.tick(interface, delta, stats, &mut result) {
 				for height in 0..column.grounded_blocks.len() {
 					check_blocks.push((column.x, height));
 				}
@@ -74,6 +79,8 @@ impl Field {
 		for (x, y) in check_blocks.iter() {
 			self.check_match(*x as i32, *y as i32);
 		}
+
+		result
 	}
 
     pub fn draw(&mut self, interface: &mut PlatformInterface, time: f64, scale: f64) {
@@ -82,11 +89,11 @@ impl Field {
         }
     }
 
-	pub fn handle_spawning(&mut self, interface: &mut PlatformInterface, delta: f64) {
+	pub fn handle_spawning(&mut self, interface: &mut PlatformInterface, delta: f64, stats: &Stats) {
 		self.spawn_timer += delta;
 
-		while self.spawn_timer >= SPAWN_TIMER {
-			self.spawn_timer -= SPAWN_TIMER;
+		while self.spawn_timer >= stats.spawn_timer {
+			self.spawn_timer -= stats.spawn_timer;
 
 			let x = interface.rng.gen_range(0..self.width);
 			let kind = self.get_valid_block_kind_for_column(interface, x);
@@ -188,7 +195,10 @@ impl Field {
 			}
 		}
 
-		if matched_count >= kind.minimum_clear_count() {
+		let mut clear_index = 0;
+		let minimum_clear_count = kind.minimum_clear_count();
+
+		if matched_count >= minimum_clear_count {
 			for ((x, y), matches) in match_map.iter() {
 				if !matches {
 					continue;
@@ -197,6 +207,14 @@ impl Field {
 				let column = &mut self.columns[*x as usize];
 				let block = &mut column.grounded_blocks[*y as usize];
 				block.clear_timer = Some(0.15);
+				if clear_index < minimum_clear_count {
+					block.clear_score = 10;
+				} else {
+					let extra_blocks = clear_index - minimum_clear_count + 1;
+					block.clear_score = (1.5_f64.powi(extra_blocks as i32).floor() as u64) * 5 + 10;
+				}
+
+				clear_index += 1;
 			}
 		}
 	}

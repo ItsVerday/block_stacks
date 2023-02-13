@@ -1,6 +1,6 @@
 use common::PlatformInterface;
 
-use crate::{BLOCK_SCALE, GRAVITY_FACTOR, render::basic, PADDING};
+use crate::{BLOCK_SCALE, render::basic, PADDING, data::Stats};
 
 use super::block_kind::BlockKind;
 
@@ -11,7 +11,8 @@ pub struct Block {
     pub grounded: bool,
 
     pub kind: BlockKind,
-    pub clear_timer: Option<f64>
+    pub clear_timer: Option<f64>,
+    pub clear_score: u64
 }
 
 impl Block {
@@ -22,13 +23,14 @@ impl Block {
 			y_velocity: 0.0,
             grounded,
             kind,
-            clear_timer: None
+            clear_timer: None,
+            clear_score: 0
         }
     }
 
-	pub fn tick(&mut self, _interface: &mut PlatformInterface, delta: f64) {
+	pub fn tick(&mut self, _interface: &mut PlatformInterface, delta: f64, stats: &Stats) {
 		if !self.grounded {
-			self.y_velocity += GRAVITY_FACTOR * delta;
+			self.y_velocity += stats.gravity * delta;
 			self.y -= self.y_velocity * delta;
 		}
 
