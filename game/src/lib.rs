@@ -63,4 +63,6 @@ pub fn draw(state: &mut GameState, interface: &mut PlatformInterface, time: f64)
     interface.set_background(20);
 	state.field.draw(interface, time, BLOCK_SCALE);
 	state.cursor.draw(interface, time, BLOCK_SCALE);
+
+	render::text::draw_text(interface, "HELLO WORLD IT IS ME", 2.0, 2.0, 15);
 }
