@@ -39,6 +39,8 @@ impl Column {
                     cleared_blocks.push(index);
                     result.blocks_cleared += 1;
                     result.score_gained += block.clear_score;
+
+			        interface.play_sound("block_clear");
                 }
             }
         }
@@ -73,6 +75,8 @@ impl Column {
                     falling_cleared_blocks.push(index);
                     result.blocks_cleared += 1;
                     result.score_gained += block.clear_score;
+
+			        interface.play_sound("block_clear");
                 }
             }
         }

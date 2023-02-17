@@ -163,23 +163,23 @@ fn do_draw(
     });
 }
 
-struct State {
+struct State<'a> {
     size: (u32, u32),
     tickrate: u32,
-    interface: PlatformInterface,
+    interface: PlatformInterface<'a>,
     time: Instant,
     ticks_executed: f64,
     accum_time: f64,
 }
 
-fn create_state(rng: ThreadRng) -> State {
+fn create_state<'a>(rng: ThreadRng) -> State<'a> {
     let interface_size = requested_size();
     let interface_tickrate = requested_tickrate();
 
     State {
         size: interface_size,
         tickrate: interface_tickrate,
-        interface: PlatformInterface::new(
+        interface: PlatformInterface::<'a>::new(
             interface_size.0 as usize,
             interface_size.1 as usize,
             rng,

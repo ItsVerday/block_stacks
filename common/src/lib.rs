@@ -1,11 +1,11 @@
 use rand::rngs::ThreadRng;
-use std::collections::HashMap;
+use std::{collections::HashMap, vec};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
 pub type Color = [u8; 4];
 
-pub struct PlatformInterface {
+pub struct PlatformInterface<'a> {
     pub width: usize,
     pub height: usize,
 
@@ -16,10 +16,11 @@ pub struct PlatformInterface {
     pub inputs: HashMap<Button, InputState>,
 
     pub rng: ThreadRng,
+    pub play_sounds: Vec<&'a str>
 }
 
-impl PlatformInterface {
-    pub fn new(width: usize, height: usize, rng: ThreadRng) -> PlatformInterface {
+impl<'a> PlatformInterface<'a> {
+    pub fn new(width: usize, height: usize, rng: ThreadRng) -> PlatformInterface<'a> {
         let mut pixel_buffer = vec![];
         pixel_buffer.resize(width * height, 0);
 
@@ -36,6 +37,7 @@ impl PlatformInterface {
             mouse_pos: None,
             inputs,
             rng,
+            play_sounds: vec![]
         }
     }
 
@@ -75,6 +77,25 @@ impl PlatformInterface {
                 self.set_pixel_exact(x as isize, y as isize, color);
             }
         }
+    }
+
+    pub fn play_sound(&mut self, sound: &'a str) {
+        for existing_sound in self.play_sounds.iter() {
+            if **existing_sound == *sound {
+                return;
+            }
+        }
+
+        self.play_sounds.push(sound);
+    }
+
+    pub fn flush_play_sounds(&mut self) -> Vec<&str> {
+        let mut sounds = vec![];
+        while let Some(sound) = self.play_sounds.pop() {
+            sounds.push(sound);
+        }
+
+        sounds
     }
 }
 

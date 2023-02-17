@@ -60,10 +60,12 @@ impl Field {
 
 		if clockwise && !counter_clockwise {
 			self.rotate_blocks(cursor, true);
+			interface.play_sound("input_rotate");
 		}
 
 		if counter_clockwise && !clockwise {
 			self.rotate_blocks(cursor, false);
+			interface.play_sound("input_rotate");
 		}
 
 		let mut check_blocks = vec![];
