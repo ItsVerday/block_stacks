@@ -12,5 +12,7 @@ strum = "0.24.1"
 strum_macros = "0.24.1"
 rand = "0.8.5"
 rand_distr = "0.4.3"
+rusty_audio = "1.4.0"
+include_dir = "0.7.3"
 common = { path = "../common" }
 game = { path = "../game" }

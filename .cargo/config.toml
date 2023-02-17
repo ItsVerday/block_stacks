@@ -1,0 +1,2 @@
+[env]
+ASSETS_DIR = { value = "game/assets/", relative = true }

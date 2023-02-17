@@ -10,11 +10,16 @@ use game::*;
 use image::{ImageBuffer, Rgba};
 use piston_window::*;
 use rand::rngs::ThreadRng;
+use rusty_audio::Audio;
+use include_dir::{include_dir, Dir};
+
+static ASSETS_DIR: Dir = include_dir!("$ASSETS_DIR");
 
 fn main() {
     let rng = rand::thread_rng();
     let mut state = create_state(rng);
     let mut game_state = game::init(&mut state.interface);
+    initialize_audio(&mut state);
 
     let mut window: PistonWindow = WindowSettings::new("Block Stacks", [1440, 960])
         .resizable(true)
@@ -115,6 +120,10 @@ fn do_ticks(state: &mut State, game_state: &mut GameState) {
         }
 
         state.interface.inputs = new_inputs;
+
+        for sound in state.interface.flush_play_sounds().iter() {
+            state.audio.play(sound);
+        }
     }
 }
 
@@ -170,6 +179,7 @@ struct State<'a> {
     time: Instant,
     ticks_executed: f64,
     accum_time: f64,
+    audio: Audio
 }
 
 fn create_state<'a>(rng: ThreadRng) -> State<'a> {
@@ -187,6 +197,7 @@ fn create_state<'a>(rng: ThreadRng) -> State<'a> {
         time: Instant::now(),
         ticks_executed: 0.0,
         accum_time: 0.0,
+        audio: Audio::new()
     }
 }
 
@@ -213,5 +224,11 @@ fn create_texture_info(window: &mut PistonWindow, state: &State) -> TextureInfo 
         buffer,
         context,
         texture,
+    }
+}
+
+fn initialize_audio(state: &mut State) {
+    for file in ASSETS_DIR.get_dir("audio").unwrap().files() {
+        println!("{:?}: {}", file.path(), file.contents_utf8().unwrap());
     }
 }
