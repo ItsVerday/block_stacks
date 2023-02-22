@@ -62,8 +62,8 @@ pub fn init(interface: &mut PlatformInterface) -> GameState {
 		cursor: Cursor::new(FIELD_WIDTH / 2 - 1, 2),
 		blocks_cleared: 0,
 		score: 0,
-		level: 100,
-		blocks_to_next_level: blocks_for_level(100)
+		level: 1,
+		blocks_to_next_level: blocks_for_level(1)
 	}
 }
 
