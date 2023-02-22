@@ -27,7 +27,7 @@ impl Column {
         }
     }
 
-	pub fn tick(&mut self, interface: &mut PlatformInterface, delta: f64, stats: &Stats, result: &mut TickResult) -> bool {
+	pub fn tick(&mut self, interface: &mut PlatformInterface, delta: f64, stats: &mut Stats, result: &mut TickResult) -> bool {
         let mut check_clear = false;
         let mut cleared_blocks = vec![];
         for index in 0..self.grounded_blocks.len() {
@@ -57,6 +57,7 @@ impl Column {
 			let ground_height = self.get_ground_height();
 			if block_y <= ground_height {
 				indices_to_remove.push(index);
+                interface.play_sound("block_land");
 			}
         }
 

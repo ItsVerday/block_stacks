@@ -122,7 +122,8 @@ fn do_ticks(state: &mut State, game_state: &mut GameState) {
         state.interface.inputs = new_inputs;
 
         for sound in state.interface.flush_play_sounds().iter() {
-            state.audio.play(sound);
+            println!("Playing sound {sound}");
+            //state.audio.play(sound);
         }
     }
 }

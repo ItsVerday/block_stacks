@@ -13,6 +13,10 @@ pub mod blocks {
 	pub mod cursor;
 }
 
+pub mod stats {
+	pub mod stat;
+}
+
 pub mod data;
 
 use common::*;
@@ -58,16 +62,16 @@ pub fn init(interface: &mut PlatformInterface) -> GameState {
 		cursor: Cursor::new(FIELD_WIDTH / 2 - 1, 2),
 		blocks_cleared: 0,
 		score: 0,
-		level: 1,
-		blocks_to_next_level: blocks_for_level(1)
+		level: 100,
+		blocks_to_next_level: blocks_for_level(100)
 	}
 }
 
 pub fn tick(state: &mut GameState, interface: &mut PlatformInterface, delta: f64) {
-	let game_stats = Stats::from(state.level);
+	let mut game_stats = Stats::from(state.level);
 
 	state.cursor.tick(interface, delta);
- 	let result = state.field.tick(interface, &state.cursor, delta, &game_stats);
+ 	let result = state.field.tick(interface, &state.cursor, delta, &mut game_stats);
 	state.blocks_cleared += result.blocks_cleared;
 	state.score += result.score_gained;
 

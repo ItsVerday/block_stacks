@@ -47,7 +47,7 @@ impl Field {
         }
     }
 
-	pub fn tick(&mut self, interface: &mut PlatformInterface, cursor: &Cursor, delta: f64, stats: &Stats) -> TickResult {
+	pub fn tick(&mut self, interface: &mut PlatformInterface, cursor: &Cursor, delta: f64, stats: &mut Stats) -> TickResult {
 		let mut result = TickResult {
 			blocks_cleared: 0,
 			score_gained: 0
@@ -91,11 +91,11 @@ impl Field {
         }
     }
 
-	pub fn handle_spawning(&mut self, interface: &mut PlatformInterface, delta: f64, stats: &Stats) {
+	pub fn handle_spawning(&mut self, interface: &mut PlatformInterface, delta: f64, stats: &mut Stats) {
 		self.spawn_timer += delta;
 
-		while self.spawn_timer >= stats.spawn_timer {
-			self.spawn_timer -= stats.spawn_timer;
+		while self.spawn_timer >= stats.spawn_timer.get_value() {
+			self.spawn_timer -= stats.spawn_timer.get_value();
 
 			let x = interface.rng.gen_range(0..self.width);
 			let kind = self.get_valid_block_kind_for_column(interface, x);
