@@ -59,12 +59,12 @@ impl Field {
 		let counter_clockwise = interface.input_pressed(ROTATE_COUNTER_CLOCKWISE_BUTTON);
 
 		if clockwise && !counter_clockwise {
-			self.rotate_blocks(cursor, true);
+			self.rotate_blocks(cursor, true, stats);
 			interface.play_sound("input_rotate");
 		}
 
 		if counter_clockwise && !clockwise {
-			self.rotate_blocks(cursor, false);
+			self.rotate_blocks(cursor, false, stats);
 			interface.play_sound("input_rotate");
 		}
 
@@ -79,7 +79,7 @@ impl Field {
         }
 
 		for (x, y) in check_blocks.iter() {
-			self.check_match(*x as i32, *y as i32);
+			self.check_match(*x as i32, *y as i32, stats);
 		}
 
 		result
@@ -105,7 +105,7 @@ impl Field {
 		}
 	}
 
-	pub fn rotate_blocks(&mut self, cursor: &Cursor, is_clockwise: bool) {
+	pub fn rotate_blocks(&mut self, cursor: &Cursor, is_clockwise: bool, stats: &mut Stats) {
 		let cursor_x = cursor.x;
 		let cursor_y = cursor.y;
 
@@ -141,13 +141,13 @@ impl Field {
 		self.fix_column(cursor_x as i32);
 		self.fix_column(cursor_x as i32 + 1);
 
-		self.check_match(cursor_x as i32, cursor_y as i32);
-		self.check_match(cursor_x as i32 + 1, cursor_y as i32);
-		self.check_match(cursor_x as i32, cursor_y as i32 + 1);
-		self.check_match(cursor_x as i32 + 1, cursor_y as i32 + 1);
+		self.check_match(cursor_x as i32, cursor_y as i32, stats);
+		self.check_match(cursor_x as i32 + 1, cursor_y as i32, stats);
+		self.check_match(cursor_x as i32, cursor_y as i32 + 1, stats);
+		self.check_match(cursor_x as i32 + 1, cursor_y as i32 + 1, stats);
 	}
 
-	pub fn check_match(&mut self, x: i32, y: i32) {
+	pub fn check_match(&mut self, x: i32, y: i32, stats: &mut Stats) {
 		let kind = self.get_kind_at(x, y);
 		let kind = match kind {
 			Some(kind) => kind,
@@ -198,7 +198,7 @@ impl Field {
 		}
 
 		let mut clear_index = 0;
-		let minimum_clear_count = kind.minimum_clear_count();
+		let minimum_clear_count = kind.minimum_clear_count(stats);
 
 		if matched_count >= minimum_clear_count {
 			for ((x, y), matches) in match_map.iter() {
@@ -209,11 +209,12 @@ impl Field {
 				let column = &mut self.columns[*x as usize];
 				let block = &mut column.grounded_blocks[*y as usize];
 				block.clear_timer = Some(0.15);
+				let base_points = stats.base_points.get_value().floor() as u64;
 				if clear_index < minimum_clear_count {
-					block.clear_score = 10;
+					block.clear_score = base_points;
 				} else {
 					let extra_blocks = clear_index - minimum_clear_count + 1;
-					block.clear_score = (1.5_f64.powi(extra_blocks as i32).floor() as u64) * 5 + 10;
+					block.clear_score = (1.5_f64.powi(extra_blocks as i32).floor() as u64) * 5 + base_points;
 				}
 
 				clear_index += 1;

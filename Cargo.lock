@@ -698,6 +698,8 @@ dependencies = [
  "common",
  "rand",
  "rand_distr",
+ "strum",
+ "strum_macros",
 ]
 
 [[package]]

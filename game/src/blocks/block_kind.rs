@@ -1,9 +1,10 @@
 use common::PlatformInterface;
 use rand::Rng;
+use strum_macros::EnumIter;
 
-use crate::{BLOCK_SCALE, PADDING, render::basic};
+use crate::{BLOCK_SCALE, PADDING, render::basic, data::Stats};
 
-#[derive(Copy, Clone, PartialEq, PartialOrd, Ord, Eq, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, PartialOrd, Ord, Eq, Hash, Debug, EnumIter)]
 pub enum BlockKind {
     Fire,
     Ice,
@@ -52,7 +53,7 @@ impl BlockKind {
         }
     }
 
-    pub fn minimum_clear_count(&self) -> u32 {
-        3
+    pub fn minimum_clear_count(&self, stats: &mut Stats) -> u32 {
+        stats.block_kinds.get_mut(self).unwrap().minimum_clear_count.get_value().ceil() as u32
     }
 }
