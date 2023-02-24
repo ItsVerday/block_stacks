@@ -18,6 +18,7 @@ wasm-pack build web --out-dir ../target/makefile/wasm_pack --out-name block_stac
 dependencies = ["run_wasm_pack"]
 script='''
 copy "web/build" "target/makefile/wasm_pack"
+copy "web/assets" "docs/assets"
 cd target/makefile/wasm_pack
 npx --yes parcel build --no-source-maps --no-content-hash --dist-dir "../../../docs/" --public-url "./" index.html
 '''

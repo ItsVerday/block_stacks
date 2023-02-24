@@ -1,4 +1,5 @@
 import * as wasm from "./block_stacks.js";
+
 async function run() {
 	await wasm.default();
 	const requestedSize = wasm.requested_size();

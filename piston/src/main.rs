@@ -2,15 +2,16 @@ extern crate image;
 extern crate piston_window;
 
 mod input;
+mod audio;
 
-use std::{collections::HashMap, time::Instant};
+use std::{collections::HashMap, time::Instant, ffi::OsStr};
 
+use audio::Audio;
 use common::{InputState, PlatformInterface};
 use game::*;
 use image::{ImageBuffer, Rgba};
 use piston_window::*;
 use rand::rngs::ThreadRng;
-use rusty_audio::Audio;
 use include_dir::{include_dir, Dir};
 
 static ASSETS_DIR: Dir = include_dir!("$ASSETS_DIR");
@@ -122,8 +123,7 @@ fn do_ticks(state: &mut State, game_state: &mut GameState) {
         state.interface.inputs = new_inputs;
 
         for sound in state.interface.flush_play_sounds().iter() {
-            println!("Playing sound {sound}");
-            //state.audio.play(sound);
+            state.audio.play(sound);
         }
     }
 }
@@ -230,6 +230,10 @@ fn create_texture_info(window: &mut PistonWindow, state: &State) -> TextureInfo 
 
 fn initialize_audio(state: &mut State) {
     for file in ASSETS_DIR.get_dir("audio").unwrap().files() {
-        println!("{:?}: {}", file.path(), file.contents_utf8().unwrap());
+        if file.path().extension() != Some(OsStr::new("ogg")) {
+            continue;
+        }
+
+        state.audio.add_data(file.path().file_stem().unwrap().to_str().unwrap(), file.contents().to_vec());
     }
 }

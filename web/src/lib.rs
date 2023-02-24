@@ -5,6 +5,9 @@ use std::collections::HashMap;
 use common::{PlatformInterface, Button, InputState};
 use game::GameState;
 use wasm_bindgen::prelude::*;
+use include_dir::{include_dir, Dir};
+
+static ASSETS_DIR: Dir = include_dir!("$ASSETS_DIR");
 
 #[wasm_bindgen]
 extern {
@@ -45,13 +48,15 @@ static mut INTERFACE: Option<PlatformInterface> = None;
 
 #[wasm_bindgen]
 pub fn init_game(width: u32, height: u32) {
-		let mut interface = PlatformInterface::new(width as usize, height as usize, rand::thread_rng());
-		let game_state = game::init(&mut interface);
+	let mut interface = PlatformInterface::new(width as usize, height as usize, rand::thread_rng());
+	let game_state = game::init(&mut interface);
 
 	unsafe {
 		INTERFACE = Some(interface);
 		GAME_STATE = Some(game_state);
 	}
+
+	console_log!("{:?}", ASSETS_DIR);
 }
 
 #[wasm_bindgen]

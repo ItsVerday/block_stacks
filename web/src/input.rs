@@ -3,7 +3,7 @@ use common::Button;
 pub fn key_name_to_common(key: &str) -> Option<Button> {
 	match key {
 		"backspace" => Some(Button::KeyBackspace),
-		"tag" => Some(Button::KeyTab),
+		"tab" => Some(Button::KeyTab),
 		"enter" => Some(Button::KeyReturn),
 		"escape" => Some(Button::KeyEscape),
 		" " => Some(Button::KeySpace),

@@ -15,6 +15,7 @@ strum = "0.24.1"
 strum_macros = "0.24.1"
 rand = "0.8.5"
 rand_distr = "0.4.3"
+include_dir = "0.7.3"
 getrandom = { version = "0.2", features = ["js"] }
 common = { path = "../common" }
 game = { path = "../game" }

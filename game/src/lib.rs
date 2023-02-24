@@ -51,7 +51,7 @@ pub fn requested_size() -> (u32, u32) {
 }
 
 pub fn requested_tickrate() -> u32 {
-    60
+    120
 }
 
 pub fn init(interface: &mut PlatformInterface) -> GameState {
