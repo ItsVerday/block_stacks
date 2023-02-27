@@ -14,11 +14,33 @@ script='''
 wasm-pack build web --out-dir ../target/makefile/wasm_pack --out-name block_stacks --target web
 '''
 
-[tasks.build_web]
+[tasks.setup_web_build]
 dependencies = ["run_wasm_pack"]
+script_runner = "@shell"
 script='''
 copy "web/build" "target/makefile/wasm_pack"
-copy "web/assets" "docs/assets"
 cd target/makefile/wasm_pack
-npx --yes parcel build --no-source-maps --no-content-hash --dist-dir "../../../docs/" --public-url "./" index.html
+npm install
+'''
+
+[tasks.run_parcel]
+dependencies = ["setup_web_build"]
+script_runner = "@shell"
+script='''
+cd target/makefile/wasm_pack
+npx parcel build --no-source-maps --no-content-hash --dist-dir "build/" --public-url "./" index.html
+'''
+
+[tasks.run_posthtml]
+dependencies = ["run_parcel"]
+script_runner = "@shell"
+script='''
+cd target/makefile/wasm_pack
+node posthtml.js
+'''
+
+[tasks.build_web]
+dependencies = ["run_posthtml"]
+script_runner = "@shell"
+script='''
 '''
