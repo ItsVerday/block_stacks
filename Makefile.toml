@@ -5,11 +5,13 @@ default_to_workspace = false
 dependencies = ["build_web", "build_native"]
 
 [tasks.build_native]
+script_runner = "@shell"
 script='''
 cargo build --release
 '''
 
 [tasks.run_wasm_pack]
+script_runner = "@shell"
 script='''
 wasm-pack build web --out-dir ../target/makefile/wasm_pack --out-name block_stacks --target web
 '''
@@ -18,7 +20,7 @@ wasm-pack build web --out-dir ../target/makefile/wasm_pack --out-name block_stac
 dependencies = ["run_wasm_pack"]
 script_runner = "@shell"
 script='''
-copy "web/build" "target/makefile/wasm_pack"
+copy "web/build/" "target/makefile/wasm_pack/"
 cd target/makefile/wasm_pack
 npm install
 '''
@@ -43,4 +45,6 @@ node posthtml.js
 dependencies = ["run_posthtml"]
 script_runner = "@shell"
 script='''
+mkdir docs
+copy "target/makefile/wasm_pack/build" "docs"
 '''

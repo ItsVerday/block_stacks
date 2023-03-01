@@ -1,7 +1,7 @@
 import * as wasm from "./block_stacks.js";
 
 const audioContext = new AudioContext();
-async function run() {
+export async function run() {
 	await wasm.default();
 	const requestedSize = wasm.requested_size();
 	const requestedTickrate = wasm.requested_tickrate();
@@ -125,5 +125,3 @@ function handleKeyInput(event, pressed) {
 		wasm.handle_key_input(event.key.toLowerCase(), pressed);
 	}
 }
-
-run();

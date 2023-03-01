@@ -1,14 +1,22 @@
 const posthtml = require("posthtml");
-const posthtmlInlineAssets = require("posthtml-inline-assets");
 const fs = require("fs");
+const uglify = require("uglify-js");
 
-async function run() {
-    const result = await posthtml([
-        posthtmlInlineAssets({
-            root: "./"
-        })
-    ]).process(fs.readFileSync("build/index.html"));
-    console.log(result.html);
+const html = fs.readFileSync("build/index.html");
+
+function minifyJS(tree) {
+    tree.match({ tag: "script" }, node => {
+        node.content = [
+            uglify.minify(node.content).code
+        ];
+
+        return node;
+    });
 }
 
-run();
+
+const result = posthtml()
+    .use(minifyJS)
+    .process(html, { sync: true }).html;
+
+fs.writeFileSync("build/index.html", result)
