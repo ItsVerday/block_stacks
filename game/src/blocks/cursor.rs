@@ -39,6 +39,7 @@ impl Cursor {
 			self.y_cooldown = if interface.input_pressed(UP_BUTTON) {0.15} else {0.05};
 			if self.y < FIELD_HEIGHT - 2 {
 				self.y += 1;
+				interface.play_sound("input_move");
 			}
 		}
 
@@ -47,6 +48,7 @@ impl Cursor {
 			self.x_cooldown = if interface.input_pressed(LEFT_BUTTON) {0.15} else {0.05};
 			if self.x > 0 {
 				self.x -= 1;
+				interface.play_sound("input_move");
 			}
 		}
 		
@@ -55,6 +57,7 @@ impl Cursor {
 			self.y_cooldown = if interface.input_pressed(DOWN_BUTTON) {0.15} else {0.05};
 			if self.y > 0 {
 				self.y -= 1;
+				interface.play_sound("input_move");
 			}
 		}
 
@@ -63,6 +66,7 @@ impl Cursor {
 			self.x_cooldown = if interface.input_pressed(RIGHT_BUTTON) {0.15} else {0.05};
 			if self.x < FIELD_WIDTH - 2 {
 				self.x += 1;
+				interface.play_sound("input_move");
 			}
 		}
 

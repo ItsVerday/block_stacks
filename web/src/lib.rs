@@ -1,10 +1,13 @@
 mod input;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, ffi::OsStr};
 
 use common::{PlatformInterface, Button, InputState};
 use game::GameState;
 use wasm_bindgen::prelude::*;
+use include_dir::{include_dir, Dir};
+
+static ASSETS_DIR: Dir = include_dir!("$ASSETS_DIR");
 
 #[wasm_bindgen]
 extern {
@@ -25,6 +28,15 @@ pub struct Size {
 	pub height: u32
 }
 
+pub struct StaticData<'a> {
+	pub interface: PlatformInterface<'a>,
+	pub game_state: GameState,
+	pub sounds: HashMap<&'a str, Vec<u8>>,
+	pub sounds_to_play: Option<Vec<&'static str>>
+}
+
+static mut DATA: Option<StaticData<'static>> = None;
+
 #[wasm_bindgen]
 pub fn requested_size() -> Size {
 	let (width, height) = game::requested_size();
@@ -39,26 +51,35 @@ pub fn requested_tickrate() -> u32 {
 	game::requested_tickrate()
 }
 
-
-static mut GAME_STATE: Option<GameState> = None;
-static mut INTERFACE: Option<PlatformInterface> = None;
-
 #[wasm_bindgen]
 pub fn init_game(width: u32, height: u32) {
-		let mut interface = PlatformInterface::new(width as usize, height as usize, rand::thread_rng());
-		let game_state = game::init(&mut interface);
+	let mut interface = PlatformInterface::new(width as usize, height as usize, rand::thread_rng());
+	let game_state = game::init(&mut interface);
+
+	let mut sounds = HashMap::new();
+
+	for file in ASSETS_DIR.get_dir("audio").unwrap().files() {
+        if file.path().extension() != Some(OsStr::new("ogg")) {
+            continue;
+        }
+
+        sounds.insert(file.path().file_stem().unwrap().to_str().unwrap(), file.contents().to_vec());
+    }
 
 	unsafe {
-		INTERFACE = Some(interface);
-		GAME_STATE = Some(game_state);
+		DATA = Some(StaticData {
+			interface,
+			game_state,
+			sounds,
+			sounds_to_play: None
+		});
 	}
 }
 
 #[wasm_bindgen]
 pub fn tick_game(delta: f64) {
 	unsafe {
-		let game_state = GAME_STATE.as_mut().unwrap();
-		let interface = INTERFACE.as_mut().unwrap();
+		let StaticData { interface, game_state, .. } = DATA.as_mut().unwrap();
 
 		game::tick(game_state, interface, delta);
 
@@ -75,8 +96,7 @@ pub fn tick_game(delta: f64) {
 #[wasm_bindgen]
 pub fn draw_game(time: f64) -> js_sys::Uint8Array {
 	unsafe {
-		let game_state = GAME_STATE.as_mut().unwrap();
-		let interface = INTERFACE.as_mut().unwrap();
+		let StaticData { interface, game_state, .. } = DATA.as_mut().unwrap();
 
 		game::draw(game_state, interface, time);
 
@@ -94,9 +114,31 @@ pub fn draw_game(time: f64) -> js_sys::Uint8Array {
 }
 
 #[wasm_bindgen]
+pub fn flush_sounds() -> usize {
+	unsafe {
+		let mut static_data = DATA.as_mut().unwrap();
+		let sounds = static_data.interface.flush_play_sounds();
+		let len = sounds.len();
+		static_data.sounds_to_play = Some(sounds);
+
+		len
+	}
+}
+
+#[wasm_bindgen]
+pub fn pop_sound_data() -> js_sys::Uint8Array {
+	unsafe {
+		let mut static_data = DATA.as_mut().unwrap();
+		let sound_data = static_data.sounds_to_play.as_mut().unwrap().pop();
+		
+		js_sys::Uint8Array::from(&static_data.sounds.get(sound_data.unwrap()).unwrap()[..])
+	}
+}
+
+#[wasm_bindgen]
 pub fn handle_mouse_input(button: u8, pressed: bool) {
 	unsafe {
-		let interface = INTERFACE.as_mut().unwrap();
+		let StaticData { interface, .. } = DATA.as_mut().unwrap();
 		let button = match button {
 			0 => Button::MouseLeft,
 			1 => Button::MouseMiddle,
@@ -113,7 +155,7 @@ pub fn handle_mouse_input(button: u8, pressed: bool) {
 #[wasm_bindgen]
 pub fn handle_mouse_move(x: f64, y: f64) {
 	unsafe {
-		let interface = INTERFACE.as_mut().unwrap();
+		let StaticData { interface, .. } = DATA.as_mut().unwrap();
 		interface.mouse_pos = Some((x, y));
 	}
 }
@@ -121,7 +163,7 @@ pub fn handle_mouse_move(x: f64, y: f64) {
 #[wasm_bindgen]
 pub fn handle_key_input(key: &str, pressed: bool) {
 	unsafe {
-		let interface = INTERFACE.as_mut().unwrap();
+		let StaticData { interface, .. } = DATA.as_mut().unwrap();
 		let button = input::key_name_to_common(key);
 
 		let state = if pressed {InputState::Pressed} else {InputState::Released};

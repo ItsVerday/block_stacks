@@ -1,17 +1,17 @@
 {
   "name": "block-stacks",
   "version": "0.1.0",
-  "files": [
-    "block_stacks_bg.wasm",
-    "block_stacks.js",
-    "block_stacks.d.ts"
-  ],
   "targets": {
     "browser": {
       "context": "browser",
-	  "outputFormat": "esmodule",
-	  "isLibrary": false,
-	  "optimize": true
+      "outputFormat": "esmodule",
+      "isLibrary": false,
+      "optimize": true
     }
+  },
+  "devDependencies": {
+    "parcel": "^2.8.3",
+    "posthtml": "^0.16.6",
+    "uglify-js": "^3.17.4"
   }
 }

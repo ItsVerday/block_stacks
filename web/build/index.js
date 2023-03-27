@@ -1,5 +1,7 @@
 import * as wasm from "./block_stacks.js";
-async function run() {
+
+const audioContext = new AudioContext();
+export async function run() {
 	await wasm.default();
 	const requestedSize = wasm.requested_size();
 	const requestedTickrate = wasm.requested_tickrate();
@@ -39,14 +41,28 @@ async function run() {
 			wasm.tick_game(1 / requestedTickrate);
 		}
 
-		const buffer = wasm.draw_game(ticksExecuted / requestedTickrate);
-		const imageData = new ImageData(new Uint8ClampedArray(buffer), requestedSize.width, requestedSize.height);
+		const drawData = wasm.draw_game(ticksExecuted / requestedTickrate);
+		const imageData = new ImageData(new Uint8ClampedArray(drawData), requestedSize.width, requestedSize.height);
 
 		context.putImageData(imageData, 0, 0);
+
+		let soundCount = wasm.flush_sounds();
+		while (soundCount-- > 0) {
+			playSoundFromBuffer(wasm.pop_sound_data().buffer);
+		}
+
 		requestAnimationFrame(loop);
 	}
 
 	loop();
+}
+
+async function playSoundFromBuffer(buffer) {
+	const audioBuffer = await audioContext.decodeAudioData(buffer);
+	const source = audioContext.createBufferSource();
+	source.buffer = audioBuffer;
+	source.connect(audioContext.destination);
+	source.start();
 }
 
 function fitCanvas(canvas, canvasSize) {
@@ -109,5 +125,3 @@ function handleKeyInput(event, pressed) {
 		wasm.handle_key_input(event.key.toLowerCase(), pressed);
 	}
 }
-
-run();

@@ -13,6 +13,10 @@ pub mod blocks {
 	pub mod cursor;
 }
 
+pub mod stats {
+	pub mod stat;
+}
+
 pub mod data;
 
 use common::*;
@@ -47,7 +51,7 @@ pub fn requested_size() -> (u32, u32) {
 }
 
 pub fn requested_tickrate() -> u32 {
-    60
+    120
 }
 
 pub fn init(interface: &mut PlatformInterface) -> GameState {
@@ -64,10 +68,10 @@ pub fn init(interface: &mut PlatformInterface) -> GameState {
 }
 
 pub fn tick(state: &mut GameState, interface: &mut PlatformInterface, delta: f64) {
-	let game_stats = Stats::from(state.level);
+	let mut game_stats = Stats::from(state.level);
 
 	state.cursor.tick(interface, delta);
- 	let result = state.field.tick(interface, &state.cursor, delta, &game_stats);
+ 	let result = state.field.tick(interface, &state.cursor, delta, &mut game_stats);
 	state.blocks_cleared += result.blocks_cleared;
 	state.score += result.score_gained;
 

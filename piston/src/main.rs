@@ -2,19 +2,25 @@ extern crate image;
 extern crate piston_window;
 
 mod input;
+mod audio;
 
-use std::{collections::HashMap, time::Instant};
+use std::{collections::HashMap, time::Instant, ffi::OsStr};
 
+use audio::Audio;
 use common::{InputState, PlatformInterface};
 use game::*;
 use image::{ImageBuffer, Rgba};
 use piston_window::*;
 use rand::rngs::ThreadRng;
+use include_dir::{include_dir, Dir};
+
+static ASSETS_DIR: Dir = include_dir!("$ASSETS_DIR");
 
 fn main() {
     let rng = rand::thread_rng();
     let mut state = create_state(rng);
     let mut game_state = game::init(&mut state.interface);
+    initialize_audio(&mut state);
 
     let mut window: PistonWindow = WindowSettings::new("Block Stacks", [1440, 960])
         .resizable(true)
@@ -115,6 +121,10 @@ fn do_ticks(state: &mut State, game_state: &mut GameState) {
         }
 
         state.interface.inputs = new_inputs;
+
+        for sound in state.interface.flush_play_sounds().iter() {
+            state.audio.play(sound);
+        }
     }
 }
 
@@ -163,23 +173,24 @@ fn do_draw(
     });
 }
 
-struct State {
+struct State<'a> {
     size: (u32, u32),
     tickrate: u32,
-    interface: PlatformInterface,
+    interface: PlatformInterface<'a>,
     time: Instant,
     ticks_executed: f64,
     accum_time: f64,
+    audio: Audio
 }
 
-fn create_state(rng: ThreadRng) -> State {
+fn create_state<'a>(rng: ThreadRng) -> State<'a> {
     let interface_size = requested_size();
     let interface_tickrate = requested_tickrate();
 
     State {
         size: interface_size,
         tickrate: interface_tickrate,
-        interface: PlatformInterface::new(
+        interface: PlatformInterface::<'a>::new(
             interface_size.0 as usize,
             interface_size.1 as usize,
             rng,
@@ -187,6 +198,7 @@ fn create_state(rng: ThreadRng) -> State {
         time: Instant::now(),
         ticks_executed: 0.0,
         accum_time: 0.0,
+        audio: Audio::new()
     }
 }
 
@@ -213,5 +225,15 @@ fn create_texture_info(window: &mut PistonWindow, state: &State) -> TextureInfo 
         buffer,
         context,
         texture,
+    }
+}
+
+fn initialize_audio(state: &mut State) {
+    for file in ASSETS_DIR.get_dir("audio").unwrap().files() {
+        if file.path().extension() != Some(OsStr::new("ogg")) {
+            continue;
+        }
+
+        state.audio.add_data(file.path().file_stem().unwrap().to_str().unwrap(), file.contents().to_vec());
     }
 }
